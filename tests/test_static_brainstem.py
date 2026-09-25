@@ -9,6 +9,9 @@ from __future__ import annotations
 
 import functools
 import hashlib
+import zipfile
+import io
+import base64
 import http.server
 import json
 import os
@@ -646,6 +649,151 @@ class StaticBrainstemTests(unittest.TestCase):
         skill = (self.root / "SKILL.md").read_text()
         self.assertIn(hashlib.sha256((self.root / "run.py").read_bytes().replace(b"\r\n", b"\n")).hexdigest(), skill)
         self.assertNotIn("<", skill.split("---")[1], "no angle brackets in the front matter")
+
+    # -------------------------------------------------------------- one-file bundle
+
+    def unpack_command(self, bundle_text: str) -> str:
+        found = re.search(r"```bash\n(python3 - SKILL.md <<'PY'.*?\nPY)\n```", bundle_text, re.S)
+        self.assertIsNotNone(found, "the bundle shows its own unpack command")
+        return found.group(1)
+
+    @unittest.skipUnless(shutil.which("bash"), "the documented command uses a bash heredoc")
+    def test_bundle_unpacks_with_its_own_command_and_runs(self):
+        self.manifest(agents=["src/agents/hello_agent.py", "src/agents/probe_agent.py"])
+        self.built()
+        bundle = (self.root / "bundle/SKILL.md").read_text()
+        self.assertTrue(bundle.startswith("---\nname: test-brainstem\n"))
+        host = self.tmp / "host"
+        host.mkdir()
+        (host / "SKILL.md").write_text(bundle)  # the only file the host was given
+        result = subprocess.run(["bash", "-c", self.unpack_command(bundle)], cwd=host, capture_output=True, text=True,
+                                timeout=60)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        unpacked = host / "test-brainstem"
+        skill = self.tmp / "skills"
+        skill.mkdir()
+        run(self.root / "build.py", "--install-skill", str(skill), drop=UNLINKED)
+        expected = {k: v for k, v in tree(skill / "test-brainstem").items() if k != ".mirror.json"}
+        self.assertEqual(tree(unpacked), expected, "the bundle carries exactly the skill copy")
+        reply = run(unpacked / "run.py", "call", "Probe", '{"nonce": "one-file"}')
+        self.assertEqual(reply.returncode, 0, reply.stdout + reply.stderr)
+        data = json.loads(reply.stdout)
+        self.assertTrue(data["ok"] and data["sha256_verified"], data)
+        self.assertEqual(json.loads(data["result"])["nonce_sha256"], hashlib.sha256(b"one-file").hexdigest())
+
+    @unittest.skipUnless(shutil.which("bash"), "the documented command uses a bash heredoc")
+    def test_bundle_refuses_a_changed_payload(self):
+        self.built()
+        bundle = (self.root / "bundle/SKILL.md").read_text()
+        start = re.search(r"<!-- payload:start sha256=[0-9a-f]{64} -->", bundle).start()  # the real one, not the command's
+        line = bundle.index("\n", start) + 1
+        changed = bundle[:line] + ("B" if bundle[line] != "B" else "C") + bundle[line + 1:]
+        host = self.tmp / "host"
+        host.mkdir()
+        (host / "SKILL.md").write_text(changed)
+        result = subprocess.run(["bash", "-c", self.unpack_command(bundle)], cwd=host, capture_output=True, text=True,
+                                timeout=60)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("SHA-256 mismatch", result.stderr)
+        self.assertFalse((host / "test-brainstem").exists(), "nothing is unpacked from a changed file")
+
+    def test_bundle_is_byte_for_byte_reproducible(self):
+        self.built()
+        first = (self.root / "bundle/SKILL.md").read_bytes()
+        for path in self.root.rglob("*"):
+            if path.is_file():
+                os.utime(path, (1_000_000_000, 1_000_000_000))  # file dates must not leak into the zip
+        result = run(self.root / "build.py", drop=UNLINKED, env={"GITHUB_REPOSITORY": "example/test-brainstem"})
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.root / "bundle/SKILL.md").read_bytes(), first)
+        payload = re.search(r"<!-- payload:start sha256=([0-9a-f]{64}) -->(.*?)<!-- payload:end -->",
+                            first.decode("utf-8"), re.S)
+        data = base64.b64decode(re.sub(r"\s+", "", payload.group(2)))
+        self.assertEqual(hashlib.sha256(data).hexdigest(), payload.group(1))
+        with zipfile.ZipFile(io.BytesIO(data)) as z:
+            infos = z.infolist()
+            self.assertEqual([i.filename for i in infos], sorted(i.filename for i in infos))
+            for info in infos:
+                self.assertEqual((info.date_time, info.compress_type), ((2020, 1, 1, 0, 0, 0), zipfile.ZIP_STORED))
+
+    def test_skill_and_llms_point_to_the_bundle(self):
+        self.built()
+        raw_base = json.loads((self.root / "registry.json").read_text())["raw_base"]
+        for name in ("SKILL.md", "llms.txt"):
+            self.assertIn(raw_base + "bundle/SKILL.md", (self.root / name).read_text(), name)
+
+    def test_an_oversized_bundle_is_skipped_and_the_rest_still_publishes(self):
+        filler = "x" * 40_000
+        names = []
+        for n in range(12):  # about 480 KB of agents: the skill copy fits the per-file limit, the bundle can't
+            name = f"src/agents/big{n}_agent.py"
+            (self.root / name).write_text(AGENT.format(cls=f"Big{n}Agent", tool=f"Big{n}", desc="big",
+                                                       body=f"return '{filler}'"))
+            names.append(name)
+        self.manifest(agents=["src/agents/hello_agent.py", *names])
+        result = self.built()
+        self.assertFalse((self.root / "bundle/SKILL.md").exists())
+        status = self.load("api/v1/status.json")
+        self.assertTrue(any("bundle/SKILL.md skipped" in n for n in status["notes"]), status["notes"])
+        self.assertNotIn("bundle", self.load("registry.json")["endpoints"])
+        for name in ("SKILL.md", "llms.txt"):
+            self.assertNotIn("bundle/SKILL.md", (self.root / name).read_text(), name)
+        self.manifest(agents=["src/agents/hello_agent.py"])  # back under the limit: the bundle returns
+        self.built()
+        self.assertTrue((self.root / "bundle/SKILL.md").exists())
+        self.assertIn("bundle", self.load("registry.json")["endpoints"])
+
+    @unittest.skipUnless(shutil.which("bash"), "the documented command uses a bash heredoc")
+    def test_bundle_follows_an_edited_agent(self):
+        self.built()
+        hello = self.root / "src/agents/hello_agent.py"
+        hello.write_text(hello.read_text().replace("Hello, ", "Hi, "))
+        self.built()
+        bundle = (self.root / "bundle/SKILL.md").read_text()
+        host = self.tmp / "host"
+        host.mkdir()
+        (host / "SKILL.md").write_text(bundle)
+        result = subprocess.run(["bash", "-c", self.unpack_command(bundle)], cwd=host, capture_output=True, text=True,
+                                timeout=60)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        reply = json.loads(run(host / "test-brainstem" / "run.py", "call", "Hello", '{"name": "x"}').stdout)
+        self.assertTrue(reply["ok"], reply)
+        self.assertTrue(reply["result"].startswith("Hi, x"), reply)
+
+    def test_published_files_get_the_usual_permissions(self):
+        self.built()
+        umask = os.umask(0o022)
+        os.umask(umask)
+        for rel in ("SKILL.md", "registry.json", "bundle/SKILL.md", "api/v1/health"):
+            self.assertEqual((self.root / rel).stat().st_mode & 0o777, 0o666 & ~umask, rel)
+
+    @unittest.skipUnless(shutil.which("bash"), "the documented command uses a bash heredoc")
+    def test_unpack_refuses_unsafe_paths_and_an_existing_folder(self):
+        self.built()
+        bundle = (self.root / "bundle/SKILL.md").read_text()
+        command = self.unpack_command(bundle)
+        crafted = io.BytesIO()
+        with zipfile.ZipFile(crafted, "w") as z:
+            z.writestr("../escaped.txt", "should never be written")
+        data = crafted.getvalue()
+        payload = base64.b64encode(data).decode("ascii")
+        hostile = re.sub(r"<!-- payload:start sha256=[0-9a-f]{64} -->.*?<!-- payload:end -->",
+                         lambda _: f"<!-- payload:start sha256={hashlib.sha256(data).hexdigest()} -->\n{payload}\n"
+                                   "<!-- payload:end -->", bundle, flags=re.S)
+        host = self.tmp / "host"
+        host.mkdir()
+        (host / "SKILL.md").write_text(hostile)
+        result = subprocess.run(["bash", "-c", command], cwd=host, capture_output=True, text=True, timeout=60)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("unsafe path", result.stderr)
+        self.assertFalse((self.tmp / "escaped.txt").exists())
+        (host / "SKILL.md").write_text(bundle)
+        (host / "test-brainstem").mkdir()
+        (host / "test-brainstem" / "mine.txt").write_text("the host's own file")
+        result = subprocess.run(["bash", "-c", command], cwd=host, capture_output=True, text=True, timeout=60)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("already exists", result.stderr)
+        self.assertEqual((host / "test-brainstem" / "mine.txt").read_text(), "the host's own file")
 
 
 if __name__ == "__main__":

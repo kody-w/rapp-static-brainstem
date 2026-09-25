@@ -20,7 +20,7 @@ The dashboard link assumes GitHub Pages is on: Settings → Pages → deploy fro
 
 ## Hosts that can't fetch links
 
-If the host takes attachments, download [`rapp-static-brainstem-skill.zip`](https://github.com/kody-w/rapp-static-brainstem/releases/latest/download/rapp-static-brainstem-skill.zip) from the latest release, attach it, and say: "Unzip this, follow SKILL.md, and run the Probe agent with nonce any-text-you-choose." The runner checks each agent's SHA-256 before it runs, and the Probe returns the SHA-256 of your nonce, so a matching hash shows it really ran. The zip is the skill copy from `--install-skill` below, without its `.mirror.json`.
+If the host takes attachments, attach one file: [`bundle/SKILL.md`](https://github.com/kody-w/rapp-static-brainstem/releases/latest/download/SKILL.md) (from the latest release, or `bundle/SKILL.md` in this repo). It carries the soul, agents and runner inside it, with one command that checks its SHA-256 and unpacks them. Then say: "Follow this SKILL.md and run the Probe agent with nonce any-text-you-choose." The Probe returns the SHA-256 of your nonce, so a matching hash shows it really ran. The release also has the same files as `rapp-static-brainstem-skill.zip`. If a brainstem grows past 512 KB the bundle is skipped and the zip is the way.
 
 Install the same files as a skill:
 
