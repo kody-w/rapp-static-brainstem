@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import ast
 import datetime as dt
+import contextlib
 import hashlib
 import json
 import os
@@ -34,6 +35,7 @@ import posixpath
 import re
 import subprocess
 import sys
+import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -122,10 +124,18 @@ def refuse_secrets(label: str, data: bytes) -> None:
 
 
 def write_if_changed(path: Path, data: bytes) -> bool:
-    if path.is_file() and lf(path.read_bytes()) == data:
+    if path.is_file() and not path.is_symlink() and lf(path.read_bytes()) == data:
         return False
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(data)
+    fd, temp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")  # random name, O_EXCL
+    try:
+        with os.fdopen(fd, "wb") as out:
+            out.write(data)
+        os.replace(temp, path)  # a new file: never writes through a link that shares the old one
+    except BaseException:
+        with contextlib.suppress(OSError):
+            os.unlink(temp)
+        raise
     return True
 
 
@@ -585,6 +595,14 @@ The owner's soul.md (sha8 `{soul_sha8}`), verbatim between the markers:
 - Installed as a skill: run from this skill's base directory: `python3 run.py call <agent> '<json arguments>'`
 - Anywhere else: download `{raw_base}run.py`, then add `--base {raw_base}`
 
+If your Python can't reach the internet (many hosted coding sandboxes can't), use your own web or fetch tool instead. Save these files into one empty folder, keeping their paths, then run `python3 run.py call <agent> '<json arguments>'` from that folder:
+
+- `{raw_base}run.py`
+- `{raw_base}api/v1/agents.json`
+- the agent's own file, listed as `File:` under Agents above (keep its `versions/...` path)
+
+That is all `call` needs, and `run.py` downloads nothing. `run.py` must have SHA-256 `{run_sha256}`; the runner checks each agent against `api/v1/agents.json` itself. If it reports a SHA-256 mismatch, save that file again byte for byte; never edit a hash to make it match. `health` also needs `{raw_base}api/v1/health.json`, and `--pin` needs `{raw_base}registry.json` plus the pinned file. Use `python` if `python3` isn't there. For files that can't change, replace the branch in these URLs with a commit SHA.
+
 `run.py` checks the agent's SHA-256 against `api/v1/agents.json` before running it. To run an exact earlier version, add `--pin <sha8>`; versions are listed in `registry.json`. A skill copy holds only current versions, so add `--base {raw_base}` for older ones.
 
 ## Answer as this brainstem (one turn)
@@ -625,34 +643,39 @@ A rapp-static-api/1.0 API: a RAPP brainstem as static files, with no server. POS
 - [api/v1/agents.json]({raw_base}api/v1/agents.json): OpenAI-style tools array
 - [api/v1/soul.json]({raw_base}api/v1/soul.json): the soul
 - [api/v1/health.json]({raw_base}api/v1/health.json): mirrors GET /health
+- [api/v1/version.json]({raw_base}api/v1/version.json): mirrors GET /version
 - [api/v1/status.json]({raw_base}api/v1/status.json): build status
+- [api/v1/badge.json]({raw_base}api/v1/badge.json): shields.io badge
 - [run.py]({raw_base}run.py): stdlib runner that verifies SHA-256 before it runs an agent
-"""
+{dashboard}"""
+LLMS_DASHBOARD = "- [Dashboard]({pages_base}index.html): the dashboard, which re-checks every hash in your browser\n"
 
 
-def render_skill(manifest: dict, soul: dict, soul_text: str, agents: list) -> str:
-    owner = manifest["owner"].strip()
-    whose = f"{owner}\u2019s" if owner else "A"
+def render_skill(manifest: dict, soul: dict, soul_text: str, agents: list, run_sha256: str = "") -> str:
+    title = " ".join(manifest["title"].split()) or manifest["name"]  # one line, safe in the front matter
+    owner = " ".join(manifest["owner"].split())
+    whose = f"{owner}\u2019s" if owner else "a"
     description = (
-        f"{whose} global brainstem: a static, read-only RAPP brainstem (soul, single-file agents, tool schemas) "
+        f"{title}: {whose} static, read-only RAPP brainstem (soul, single-file agents, tool schemas) "
         "served as a rapp-static-api/1.0 API, runnable without a server. Use when asked to "
-        "\u201cuse my global brainstem\u201d, \u201cask my brainstem\u201d when no local server is reachable, "
-        "\u201crun my <agent> agent\u201d, or \u201cwhat agents are in my global brainstem\u201d. Do NOT use for a "
-        "live brainstem server on localhost or for editing a personal profile or memory.")
+        "\u201cuse my static brainstem\u201d, \u201crun an agent from my static brainstem\u201d, "
+        "or \u201cwhat agents are in my static brainstem\u201d. Do NOT use for a live brainstem server on "
+        "localhost, for a brainstem imagined without running its agents, or for editing a personal profile or memory.")
     lines = []
     for a in agents:
         params = a["_metadata"].get("parameters") or {}
         required = set(params.get("required") or [])
         args = ", ".join(f"{k}{' (required)' if k in required else ''}" for k in (params.get("properties") or {}))
         lines.append(f"- `{a['tool']}` ({a['class']}, sha8 `{a['sha8']}`): {a['description'].strip() or 'no description'}"
-                     + (f"\n  Arguments: {args}" if args else ""))
+                     + (f"\n  Arguments: {args}" if args else "")
+                     + f"\n  File: {manifest['raw_base']}{a['path']}")
     return SKILL_TEMPLATE.format(
         skill_name=manifest["skill_name"], description=yaml_quote(description), schema=SCHEMA, spec=SPEC,
         raw_base=manifest["raw_base"], title=manifest["title"],
         lede=manifest["description"] or "A RAPP brainstem as static files.",
         soul_sha8=soul["sha8"], soul=soul_text.rstrip("\n"),
         agents="\n".join(lines) or "- none yet. Add agents to manifest.json and rebuild.",
-        authority=AUTHORITY)
+        authority=AUTHORITY, run_sha256=run_sha256)
 
 
 def build(root: Path, repo_flag: str | None = None) -> dict:
@@ -745,10 +768,13 @@ def build(root: Path, repo_flag: str | None = None) -> dict:
         "api/v1/version": dump(version),
         "api/v1/agents.json": dump(tools),
         "api/v1/soul.json": dump(soul_doc),
-        "SKILL.md": render_skill(manifest, soul, soul_text, agents).encode("utf-8"),
+        "SKILL.md": render_skill(manifest, soul, soul_text, agents,
+                                 hashlib.sha256(lf((root / "run.py").read_bytes())).hexdigest()).encode("utf-8"),
         "llms.txt": LLMS_TEMPLATE.format(
             title=manifest["title"], raw_base=raw_base,
-            description=manifest["description"] or "A RAPP brainstem as static files.").encode("utf-8"),
+            description=manifest["description"] or "A RAPP brainstem as static files.",
+            dashboard=LLMS_DASHBOARD.format(pages_base=manifest["pages_base"]) if manifest["pages_base"] else "",
+        ).encode("utf-8"),
     }
     for rel, data in outputs.items():  # last line of defence, before anything is written
         refuse_secrets(rel, data)
@@ -790,8 +816,27 @@ def skills_dir(target: str) -> Path:
     return path
 
 
+def inside(target: Path, rel) -> Path | None:
+    """target/rel, or None unless rel is a plain relative path (not absolute, no '.' or '..') that stays
+    inside target with no link anywhere on the way."""
+    if not isinstance(rel, str) or not NAME_RE.fullmatch(rel) or {".", ".."} & set(rel.split("/")):
+        return None
+    path = target
+    for part in rel.split("/"):
+        path = path / part
+        if path.is_symlink():
+            return None
+    try:
+        path.resolve().relative_to(target.resolve())
+    except (OSError, RuntimeError, ValueError):
+        return None
+    return path
+
+
 def mirror(root: Path, files: list, target: Path, raw_base: str) -> tuple:
-    """Copy the skill view into target. Only files an earlier install wrote are ever removed."""
+    """Copy the skill view into target. Only files an earlier install wrote are ever removed, and nothing
+    outside target is ever written or removed: marker entries that are absolute, use '..', or pass through
+    a link are ignored, and the install refuses to write through a link."""
     marker = target / ".mirror.json"
     previous: set = set()
     if target.exists():
@@ -805,20 +850,42 @@ def mirror(root: Path, files: list, target: Path, raw_base: str) -> tuple:
         if not ours and any(target.iterdir()):
             raise BuildError(f"{target} already holds files this build didn't make. "
                              "Choose an empty folder or move those files first.")
-        previous = set(info.get("files", [])) if ours else set()
+        listed = info.get("files") if ours else None
+        hashes = info.get("sha256") if ours and isinstance(info.get("sha256"), dict) else {}
+        previous = {rel for rel in listed if isinstance(rel, str)} if isinstance(listed, list) else set()
     target.mkdir(parents=True, exist_ok=True)
+    destinations = {}
+    for rel in [*files, marker.name]:  # check every write before anything changes
+        destinations[rel] = inside(target, rel)
+        if destinations[rel] is None:
+            raise BuildError(f"{target / rel} is a link, or leads outside {target}. The install won't write "
+                             "through it. Remove it and install again.")
+        if destinations[rel].is_dir():
+            raise BuildError(f"{target / rel} is a folder, but the skill needs a file there. Move it and install again.")
     removed = written = 0
+    emptied = set()
     for rel in sorted(previous - set(files)):
-        path = target / rel
-        if path.is_file():
-            path.unlink()
-            removed += 1
+        path = inside(target, rel)
+        if path is None or not path.is_file():  # outside the folder, through a link, or already gone
+            continue
+        if hashes.get(rel) != hashlib.sha256(lf(path.read_bytes())).hexdigest():
+            continue  # not the bytes this install wrote (changed since, or never ours): leave it
+        path.unlink()
+        removed += 1
+        parts = rel.split("/")[:-1]
+        emptied.update(target.joinpath(*parts[:depth]) for depth in range(1, len(parts) + 1))
     for rel in files:
-        written += write_if_changed(target / rel, lf((root / rel).read_bytes()))
-    write_if_changed(marker, dump({"schema": MIRROR_SCHEMA, "source": raw_base, "files": sorted(files)}))
-    for folder in sorted((p for p in target.rglob("*") if p.is_dir()), key=lambda p: len(p.parts), reverse=True):
-        if not any(folder.iterdir()):
-            folder.rmdir()
+        written += write_if_changed(destinations[rel], lf((root / rel).read_bytes()))
+    written_hashes = {rel: hashlib.sha256(lf((root / rel).read_bytes())).hexdigest() for rel in files}
+    write_if_changed(destinations[marker.name],
+                     dump({"schema": MIRROR_SCHEMA, "source": raw_base, "files": sorted(files),
+                           "sha256": written_hashes}))
+    for folder in sorted(emptied, key=lambda p: len(p.parts), reverse=True):  # only folders this run emptied
+        try:
+            if not folder.is_symlink() and folder.is_dir() and not any(folder.iterdir()):
+                folder.rmdir()
+        except OSError:
+            pass
     return written, removed
 
 

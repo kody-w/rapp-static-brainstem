@@ -12,6 +12,7 @@ import hashlib
 import http.server
 import json
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -39,6 +40,16 @@ class {cls}(BasicAgent):
 
     def perform(self, **kwargs):
         {body}
+'''
+
+# Calls the runner in-process, so the test can see the caller's working folder before and after.
+DRIVER = '''import importlib.util, json, os, sys
+spec = importlib.util.spec_from_file_location("runner", sys.argv[1])
+runner = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(runner)
+before = os.getcwd()
+reply = runner.call(sys.argv[2], "Where", "{}")
+print(json.dumps({"before": before, "after": os.getcwd(), "reply": reply}))
 '''
 
 
@@ -175,6 +186,44 @@ class StaticBrainstemTests(unittest.TestCase):
         self.assertIn(f"<!-- soul:start -->\n{soul}\n<!-- soul:end -->", skill)
         self.assertIn("`Hello` (HelloAgent, sha8 `", skill)
         self.assertIn(f"({RAW}SKILL.md)", (self.root / "llms.txt").read_text())
+
+    def test_skill_description_uses_this_brainstems_name_and_no_colliding_triggers(self):
+        def description():
+            skill = (self.root / "SKILL.md").read_text()
+            return json.loads(re.search(r'^description: (".*")$', skill, re.M).group(1))
+
+        self.built()
+        self.assertTrue(description().startswith("Test Brainstem: Test’s static, read-only RAPP brainstem"),
+                        description())
+        self.manifest(title="Other Title", owner="")
+        self.built()
+        text = description()
+        self.assertTrue(text.startswith("Other Title: a static, read-only RAPP brainstem"), text)
+        for phrase in ("use my static brainstem", "run an agent from my static brainstem",
+                       "what agents are in my static brainstem"):
+            self.assertIn(f"“{phrase}”", text)
+        page = (self.root / "index.html").read_text().lower()
+        for clash in ("global brainstem", "ask my brainstem"):  # other brainstem skills answer to these
+            self.assertNotIn(clash, text.lower())
+            self.assertNotIn(clash, page)
+
+    def test_llms_links_every_entry_point(self):
+        for pages in (None, "https://example.github.io/brainstem/"):
+            with self.subTest(pages_base=pages):
+                self.manifest(pages_base=pages)
+                self.built()
+                reg = self.load("registry.json")
+                llms = (self.root / "llms.txt").read_text()
+                for key, rel in reg["endpoints"].items():
+                    if key == "llms":
+                        continue
+                    if key == "dashboard":  # a dashboard link needs a Pages URL; raw would show its source
+                        if pages:
+                            self.assertIn(f"]({pages}{rel})", llms)
+                        else:
+                            self.assertNotIn(rel, llms)
+                    else:
+                        self.assertIn(f"]({RAW}{rel})", llms, key)
 
     # -------------------------------------------------------------- raw_base "auto"
 
@@ -379,6 +428,44 @@ class StaticBrainstemTests(unittest.TestCase):
         self.assertIn("not_a_real_package_xyz", self.call("Needs")[1]["error"])
         self.assertIn("available", self.call("Nope")[1])
 
+    def test_runner_runs_the_agent_in_a_temporary_folder(self):
+        (self.root / "src/agents/where_agent.py").write_text(AGENT.format(
+            cls="WhereAgent", tool="Where", desc="x",
+            body="import os\n        open('relative-write.txt', 'w').close()\n        return os.getcwd()"))
+        self.manifest(agents=["src/agents/hello_agent.py", "src/agents/where_agent.py"])
+        self.built()
+        caller = self.tmp / "caller"
+        caller.mkdir()
+        (self.tmp / "driver.py").write_text(DRIVER)
+        result = subprocess.run([sys.executable, str(self.tmp / "driver.py"), str(self.root / "run.py"),
+                                 str(self.root)], cwd=caller, capture_output=True, text=True, timeout=120)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        seen = json.loads(result.stdout)
+        self.assertTrue(seen["reply"]["ok"], seen["reply"])
+        ran_in = Path(seen["reply"]["result"])
+        self.assertTrue(ran_in.name.startswith("static-brainstem-"), ran_in)
+        self.assertEqual(ran_in.parent.resolve(), Path(tempfile.gettempdir()).resolve())
+        self.assertFalse(ran_in.exists(), "the temporary folder is removed afterwards")
+        self.assertEqual(Path(seen["before"]).resolve(), caller.resolve())
+        self.assertEqual(seen["after"], seen["before"], "the caller's working folder is restored")
+        self.assertEqual(list(caller.iterdir()), [], "a relative write stays out of the caller's folder")
+
+    def test_probe_proves_it_ran_and_reveals_nothing_else(self):
+        self.manifest(agents=["src/agents/hello_agent.py", "src/agents/probe_agent.py"])
+        self.built()
+        code, reply = self.call("Probe", json.dumps({"nonce": "abc"}))
+        self.assertEqual(code, 0, reply)
+        probe = json.loads(reply["result"])
+        self.assertEqual(list(probe), ["nonce_sha256", "python", "os", "ran_in_temp_folder"])
+        self.assertEqual(probe["nonce_sha256"], hashlib.sha256(b"abc").hexdigest())
+        self.assertEqual(probe["python"], platform.python_version())
+        self.assertEqual(probe["os"], sys.platform)
+        self.assertIs(probe["ran_in_temp_folder"], True)
+        self.assertNotIn(str(Path.home()), reply["result"], "no user folder in the proof")
+        self.assertNotIn(os.getcwd(), reply["result"], "no caller folder in the proof")
+        source = (self.root / "src/agents/probe_agent.py").read_text()
+        self.assertNotIn("urllib", source, "the probe uses no network")
+
     # -------------------------------------------------------------- skill install
 
     def test_skill_install_runs_and_keeps_foreign_files(self):
@@ -419,6 +506,146 @@ class StaticBrainstemTests(unittest.TestCase):
         result = self.build("--install-skill", skills)
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual((skills / "test-brainstem" / "SKILL.md").read_text(), "someone else's skill")
+
+    # -------------------------------------------------------------- skill install stays in its folder (SEC-9)
+
+    def install(self):
+        skills = self.tmp / "skills"
+        skills.mkdir(exist_ok=True)
+        self.built("--install-skill", skills)
+        return skills, skills / "test-brainstem"
+
+    def sentinel(self) -> Path:
+        path = self.tmp / "outside" / "sentinel.txt"
+        path.parent.mkdir(exist_ok=True)
+        path.write_text("not the skill's")
+        return path
+
+    def link(self, link: Path, to: Path):
+        try:
+            link.symlink_to(to, target_is_directory=to.is_dir())
+        except (OSError, NotImplementedError):
+            self.skipTest("this system can't make symbolic links")
+
+    def reinstall_with_forged_marker(self, skills, copy, *entries):
+        marker = copy / ".mirror.json"
+        info = json.loads(marker.read_text())
+        info["files"] += list(entries)
+        marker.write_text(json.dumps(info))
+        return self.build("--install-skill", skills)
+
+    def assert_untouched(self, sentinel, result):
+        self.assertTrue(sentinel.exists(), "a file outside the skill folder was deleted")
+        self.assertEqual(sentinel.read_text(), "not the skill's")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_skill_install_ignores_an_absolute_marker_entry(self):
+        sentinel = self.sentinel()
+        skills, copy = self.install()
+        self.assert_untouched(sentinel, self.reinstall_with_forged_marker(skills, copy, str(sentinel)))
+
+    def test_skill_install_ignores_a_parent_marker_entry(self):
+        sentinel = self.sentinel()
+        skills, copy = self.install()
+        self.assert_untouched(sentinel, self.reinstall_with_forged_marker(skills, copy, "../../outside/sentinel.txt"))
+
+    def test_skill_install_ignores_a_marker_entry_through_a_link(self):
+        sentinel = self.sentinel()
+        skills, copy = self.install()
+        self.link(copy / "linked", sentinel.parent)
+        result = self.reinstall_with_forged_marker(skills, copy, "linked/sentinel.txt")
+        self.assert_untouched(sentinel, result)
+        self.assertTrue((copy / "linked").is_symlink(), "a link the host made is left alone")
+
+    def test_skill_install_keeps_empty_folders_it_did_not_empty(self):
+        skills, copy = self.install()
+        (copy / "host-folder").mkdir()
+        self.built("--install-skill", skills)
+        self.assertTrue((copy / "host-folder").is_dir())
+
+    def test_skill_install_refuses_to_write_through_a_link(self):
+        sentinel = self.sentinel()
+        skills, copy = self.install()
+        (copy / "SKILL.md").unlink()
+        self.link(copy / "SKILL.md", sentinel)
+        result = self.build("--install-skill", skills)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("link", result.stderr)
+        self.assertEqual(sentinel.read_text(), "not the skill's")
+
+    def test_skill_install_removes_only_files_it_wrote_unchanged(self):
+        skills = self.tmp / "skills"
+        skills.mkdir()
+        self.built()
+        run(self.root / "build.py", "--install-skill", str(skills), drop=UNLINKED)
+        target = skills / "test-brainstem"
+        marker = json.loads((target / ".mirror.json").read_text())
+        (target / "notes.txt").write_text("the host's own note")
+        marker["files"].append("notes.txt")
+        marker.setdefault("sha256", {})["notes.txt"] = "0" * 64
+        (target / ".mirror.json").write_text(json.dumps(marker))
+        result = run(self.root / "build.py", "--install-skill", str(skills), drop=UNLINKED)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((target / "notes.txt").read_text(), "the host's own note",
+                         "a listed file whose bytes don't match what the install wrote is kept")
+
+    def test_skill_install_never_writes_through_a_hard_link(self):
+        skills = self.tmp / "skills"
+        skills.mkdir()
+        self.built()
+        run(self.root / "build.py", "--install-skill", str(skills), drop=UNLINKED)
+        target = skills / "test-brainstem"
+        outside = self.tmp / "outside-run.py"
+        (target / "run.py").unlink()
+        outside.write_text("the host's own file")
+        os.link(outside, target / "run.py")
+        result = run(self.root / "build.py", "--install-skill", str(skills), drop=UNLINKED)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(outside.read_text(), "the host's own file", "the other name for the file is untouched")
+        self.assertEqual((target / "run.py").read_bytes(), (self.root / "run.py").read_bytes().replace(b"\r\n", b"\n"))
+
+    def test_skill_lists_the_files_an_offline_host_needs_and_they_are_enough(self):
+        self.manifest(agents=["src/agents/hello_agent.py", "src/agents/probe_agent.py"])
+        self.built()
+        skill = (self.root / "SKILL.md").read_text()
+        raw_base = json.loads((self.root / "registry.json").read_text())["raw_base"]
+        self.assertIn("can't reach the internet", skill)
+        offline = self.tmp / "offline"
+        offline.mkdir()
+        for rel in ("run.py", "api/v1/agents.json"):
+            self.assertIn(raw_base + rel, skill)
+        agents = json.loads((self.root / "api/v1/agents.json").read_text())["agents"]
+        for a in agents:
+            self.assertIn(raw_base + a["path"], skill, a["tool"])
+        needed = ["run.py", "api/v1/agents.json", next(a["path"] for a in agents if a["tool"] == "Probe")]
+        for rel in needed:  # what a host's web tool would save, nothing more
+            (offline / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(self.root / rel, offline / rel)
+        result = run(offline / "run.py", "call", "Probe", '{"nonce": "offline"}')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        reply = json.loads(result.stdout)
+        self.assertTrue(reply["ok"] and reply["sha256_verified"], reply)
+        self.assertEqual(json.loads(reply["result"])["nonce_sha256"], hashlib.sha256(b"offline").hexdigest())
+
+    def test_skill_install_refuses_a_folder_where_a_file_belongs(self):
+        skills = self.tmp / "skills"
+        skills.mkdir()
+        self.built()
+        run(self.root / "build.py", "--install-skill", str(skills), drop=UNLINKED)
+        target = skills / "test-brainstem"
+        (target / "run.py").unlink()
+        (target / "run.py").mkdir()
+        result = run(self.root / "build.py", "--install-skill", str(skills), drop=UNLINKED)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("is a folder", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertEqual(sorted(p.name for p in target.iterdir() if p.name.endswith(".tmp")), [])
+
+    def test_skill_gives_the_runner_hash_an_offline_host_checks(self):
+        self.built()
+        skill = (self.root / "SKILL.md").read_text()
+        self.assertIn(hashlib.sha256((self.root / "run.py").read_bytes().replace(b"\r\n", b"\n")).hexdigest(), skill)
+        self.assertNotIn("<", skill.split("---")[1], "no angle brackets in the front matter")
 
 
 if __name__ == "__main__":

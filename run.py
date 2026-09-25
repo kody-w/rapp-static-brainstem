@@ -21,6 +21,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import os
 import posixpath
 import sys
 import tempfile
@@ -180,6 +181,11 @@ def call(base: str, name: str, raw_args: str, pin: str | None = None) -> dict:
         spec = importlib.util.spec_from_file_location(f"static_agent_{uuid.uuid4().hex}", file)
         module = importlib.util.module_from_spec(spec)
         try:
+            caller = os.getcwd()
+        except OSError:  # the caller's folder is gone; there is nothing to return to
+            caller = None
+        os.chdir(tmp)  # the agent runs, and writes relative paths, in the temporary folder
+        try:
             with contextlib.redirect_stdout(printed):
                 spec.loader.exec_module(module)
                 agent = getattr(module, entry["class"])()
@@ -191,6 +197,10 @@ def call(base: str, name: str, raw_args: str, pin: str | None = None) -> dict:
             return {"ok": False, "agent": entry["class"], "error": f"agent exited early (code {exc.code})"}
         except Exception as exc:  # the agent's own failure, reported rather than raised
             return {"ok": False, "agent": entry["class"], "error": f"{type(exc).__name__}: {exc}"}
+        finally:
+            if caller is not None:
+                with contextlib.suppress(OSError):
+                    os.chdir(caller)
 
     if not isinstance(result, str):
         result = json.dumps(result, ensure_ascii=False, default=str)

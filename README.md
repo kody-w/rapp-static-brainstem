@@ -16,7 +16,7 @@ Your RAPP brainstem as a static API. The soul, single-file agents, and tool sche
 
 To start with an empty history instead of the template's demo versions, delete `registry.json`, `api/`, and `versions/` before your first push.
 
-For the dashboard, turn on GitHub Pages (deploy from the `main` branch, root folder) and set `"pages_base": "auto"` in `manifest.json`.
+The dashboard link assumes GitHub Pages is on: Settings → Pages → deploy from the `main` branch, root folder. If you don't want the dashboard, set `"pages_base": null` in `manifest.json`.
 
 ## Hosts that can't fetch links
 
