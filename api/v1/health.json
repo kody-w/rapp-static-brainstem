@@ -1,0 +1,14 @@
+{
+  "schema": "rapp-static-brainstem-health/1.0",
+  "status": "static",
+  "version": "1.0.0",
+  "model": "gpt-4o",
+  "soul": "versions/soul.md/d46536ffbd5e.md",
+  "agents": [
+    "ClockAgent",
+    "HelloAgent",
+    "ProbeAgent"
+  ],
+  "copilot": "not used (static snapshot)",
+  "endpoint": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/api/v1/"
+}

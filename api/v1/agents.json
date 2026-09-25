@@ -1,0 +1,92 @@
+{
+  "schema": "rapp-static-brainstem-agents/1.0",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "Clock",
+        "description": "Get the current date and time, optionally shifted by a UTC offset in hours.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "utc_offset_hours": {
+              "type": "number",
+              "description": "Hours from UTC, for example -4 for US Eastern daylight time. Defaults to 0."
+            }
+          },
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "Hello",
+        "description": "Greet someone by name. A tiny agent that proves the static brainstem can run tools.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Who to greet."
+            }
+          },
+          "required": [
+            "name"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "Probe",
+        "description": "Prove this brainstem really ran here: returns the SHA-256 of a nonce you pass, the Python version, the operating system family, and whether it ran in a temporary folder. It reads nothing else and uses no network.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "nonce": {
+              "type": "string",
+              "description": "Any text. Its SHA-256 comes back, so you can tell this run answered your call."
+            }
+          },
+          "required": [
+            "nonce"
+          ]
+        }
+      }
+    }
+  ],
+  "agents": [
+    {
+      "class": "ClockAgent",
+      "tool": "Clock",
+      "name": "agents/clock_agent.py",
+      "sha8": "543eafae61f6",
+      "sha256": "543eafae61f6531eeb778a103939418d7f79e05185b84dc95c0bace6ad067930",
+      "bytes": 1227,
+      "path": "versions/agents/clock_agent.py/543eafae61f6.py",
+      "raw": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/versions/agents/clock_agent.py/543eafae61f6.py"
+    },
+    {
+      "class": "HelloAgent",
+      "tool": "Hello",
+      "name": "agents/hello_agent.py",
+      "sha8": "70fde91fecdb",
+      "sha256": "70fde91fecdb5c56ac61ca52752d1100808a97ad8f3f85a6d92ccb472d045d38",
+      "bytes": 792,
+      "path": "versions/agents/hello_agent.py/70fde91fecdb.py",
+      "raw": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/versions/agents/hello_agent.py/70fde91fecdb.py"
+    },
+    {
+      "class": "ProbeAgent",
+      "tool": "Probe",
+      "name": "agents/probe_agent.py",
+      "sha8": "3377b1eaf6f5",
+      "sha256": "3377b1eaf6f5d97086575354239cb80f02f5c8ea15a4534488243c29ae4eb179",
+      "bytes": 1860,
+      "path": "versions/agents/probe_agent.py/3377b1eaf6f5.py",
+      "raw": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/versions/agents/probe_agent.py/3377b1eaf6f5.py"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+# RAPP Static Brainstem
+
+> A RAPP brainstem as static files: soul, single-file agents, and tool schemas served from GitHub raw, so any AI can act as it without a server.
+
+A rapp-static-api/1.0 API: a RAPP brainstem as static files, with no server. POST /chat isn't served; the AI that reads SKILL.md runs the turn.
+
+- [SKILL.md](https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/SKILL.md): start here. The soul, the agents, and how to run them.
+- [registry.json](https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/registry.json): the index, with sha8, sources, and history for every entry
+- [api/v1/agents.json](https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/api/v1/agents.json): OpenAI-style tools array
+- [api/v1/soul.json](https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/api/v1/soul.json): the soul
+- [api/v1/health.json](https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/api/v1/health.json): mirrors GET /health
+- [api/v1/version.json](https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/api/v1/version.json): mirrors GET /version
+- [api/v1/status.json](https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/api/v1/status.json): build status
+- [api/v1/badge.json](https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/api/v1/badge.json): shields.io badge
+- [run.py](https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/run.py): stdlib runner that verifies SHA-256 before it runs an agent
+- [Dashboard](https://kody-w.github.io/rapp-static-brainstem/index.html): the dashboard, which re-checks every hash in your browser

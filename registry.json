@@ -1,0 +1,158 @@
+{
+  "schema": "rapp-static-brainstem/1.0",
+  "spec": "rapp-static-api/1.0",
+  "name": "rapp-static-brainstem",
+  "title": "RAPP Static Brainstem",
+  "description": "A RAPP brainstem as static files: soul, single-file agents, and tool schemas served from GitHub raw, so any AI can act as it without a server.",
+  "owner": "",
+  "generated": "2026-09-25T16:05:43Z",
+  "raw_base": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/",
+  "pages_base": "https://kody-w.github.io/rapp-static-brainstem/",
+  "entry": "SKILL.md",
+  "summary": {
+    "status": "ok",
+    "agents": 3,
+    "soul": "d46536ffbd5e",
+    "versions": 4,
+    "drift": 0,
+    "stale": 0,
+    "errors": 0
+  },
+  "endpoints": {
+    "skill": "SKILL.md",
+    "llms": "llms.txt",
+    "status": "api/v1/status.json",
+    "badge": "api/v1/badge.json",
+    "health": "api/v1/health.json",
+    "version": "api/v1/version.json",
+    "agents": "api/v1/agents.json",
+    "soul": "api/v1/soul.json",
+    "runner": "run.py",
+    "dashboard": "index.html"
+  },
+  "chat": {
+    "served": false,
+    "reason": "A static host can't run POST /chat. The reading AI runs the turn: the soul as instructions, api/v1/agents.json as tools, run.py for tool calls."
+  },
+  "authority": "Non-authoritative discovery. Signed RAPP/1 frames and signed RAPP/1 registries remain the authority.",
+  "entries": [
+    {
+      "name": "soul.md",
+      "kind": "soul",
+      "sha8": "d46536ffbd5e",
+      "sha256": "d46536ffbd5edec8ac2416070e52f71517f642ef1f90888aca3bf141aad0bd0f",
+      "bytes": 218,
+      "path": "versions/soul.md/d46536ffbd5e.md",
+      "raw": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/versions/soul.md/d46536ffbd5e.md",
+      "policy": "observe",
+      "fresh": true,
+      "drift": false,
+      "sources": [
+        {
+          "label": "repo",
+          "path": "src/soul.md",
+          "url": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/src/soul.md",
+          "sha8": "d46536ffbd5e"
+        }
+      ],
+      "history": [
+        {
+          "sha8": "d46536ffbd5e",
+          "sha256": "d46536ffbd5edec8ac2416070e52f71517f642ef1f90888aca3bf141aad0bd0f",
+          "bytes": 218
+        }
+      ]
+    },
+    {
+      "name": "agents/clock_agent.py",
+      "kind": "agent",
+      "class": "ClockAgent",
+      "tool": "Clock",
+      "description": "Get the current date and time, optionally shifted by a UTC offset in hours.",
+      "sha8": "543eafae61f6",
+      "sha256": "543eafae61f6531eeb778a103939418d7f79e05185b84dc95c0bace6ad067930",
+      "bytes": 1227,
+      "path": "versions/agents/clock_agent.py/543eafae61f6.py",
+      "raw": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/versions/agents/clock_agent.py/543eafae61f6.py",
+      "policy": "observe",
+      "fresh": true,
+      "drift": false,
+      "sources": [
+        {
+          "label": "repo",
+          "path": "src/agents/clock_agent.py",
+          "url": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/src/agents/clock_agent.py",
+          "sha8": "543eafae61f6"
+        }
+      ],
+      "history": [
+        {
+          "sha8": "543eafae61f6",
+          "sha256": "543eafae61f6531eeb778a103939418d7f79e05185b84dc95c0bace6ad067930",
+          "bytes": 1227
+        }
+      ]
+    },
+    {
+      "name": "agents/hello_agent.py",
+      "kind": "agent",
+      "class": "HelloAgent",
+      "tool": "Hello",
+      "description": "Greet someone by name. A tiny agent that proves the static brainstem can run tools.",
+      "sha8": "70fde91fecdb",
+      "sha256": "70fde91fecdb5c56ac61ca52752d1100808a97ad8f3f85a6d92ccb472d045d38",
+      "bytes": 792,
+      "path": "versions/agents/hello_agent.py/70fde91fecdb.py",
+      "raw": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/versions/agents/hello_agent.py/70fde91fecdb.py",
+      "policy": "observe",
+      "fresh": true,
+      "drift": false,
+      "sources": [
+        {
+          "label": "repo",
+          "path": "src/agents/hello_agent.py",
+          "url": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/src/agents/hello_agent.py",
+          "sha8": "70fde91fecdb"
+        }
+      ],
+      "history": [
+        {
+          "sha8": "70fde91fecdb",
+          "sha256": "70fde91fecdb5c56ac61ca52752d1100808a97ad8f3f85a6d92ccb472d045d38",
+          "bytes": 792
+        }
+      ]
+    },
+    {
+      "name": "agents/probe_agent.py",
+      "kind": "agent",
+      "class": "ProbeAgent",
+      "tool": "Probe",
+      "description": "Prove this brainstem really ran here: returns the SHA-256 of a nonce you pass, the Python version, the operating system family, and whether it ran in a temporary folder. It reads nothing else and uses no network.",
+      "sha8": "3377b1eaf6f5",
+      "sha256": "3377b1eaf6f5d97086575354239cb80f02f5c8ea15a4534488243c29ae4eb179",
+      "bytes": 1860,
+      "path": "versions/agents/probe_agent.py/3377b1eaf6f5.py",
+      "raw": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/versions/agents/probe_agent.py/3377b1eaf6f5.py",
+      "policy": "observe",
+      "fresh": true,
+      "drift": false,
+      "sources": [
+        {
+          "label": "repo",
+          "path": "src/agents/probe_agent.py",
+          "url": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/src/agents/probe_agent.py",
+          "sha8": "3377b1eaf6f5"
+        }
+      ],
+      "history": [
+        {
+          "sha8": "3377b1eaf6f5",
+          "sha256": "3377b1eaf6f5d97086575354239cb80f02f5c8ea15a4534488243c29ae4eb179",
+          "bytes": 1860
+        }
+      ]
+    }
+  ],
+  "retired": []
+}
