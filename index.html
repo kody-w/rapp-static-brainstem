@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Global Brainstem · rapp-static-api/1.0</title>
+<meta name="description" content="A RAPP brainstem as static files: soul, single-file agents and tool schemas served from GitHub raw.">
+<style>
+  :root { --ink:#16212a; --muted:#5d6c78; --line:#dde4ea; --bg:#f5f7f9; --card:#fff; --accent:#0e7a6b; --warn:#a86400; --bad:#b3261e; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e6edf2; --muted:#9dafbc; --line:#263440; --bg:#0d151b; --card:#121d25; --accent:#3cc3ad; --warn:#f0b35a; --bad:#ff8a80; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: var(--bg); }
+  main { max-width: 960px; margin: 0 auto; padding: 36px 20px 64px; }
+  h1 { font-size: clamp(28px, 4.5vw, 42px); line-height: 1.1; margin: 0 0 8px; letter-spacing: -0.02em; }
+  .lede { color: var(--muted); margin: 0 0 18px; max-width: 62ch; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; }
+  .chip { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 3px 12px; font-size: 14px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin: 0 0 16px; }
+  h2 { font-size: 17px; margin: 0 0 12px; display: flex; gap: 10px; align-items: center; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 8px; border-top: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; border-top: 0; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13.5px; }
+  pre { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin: 0; overflow: auto; white-space: pre-wrap; max-height: 420px; }
+  .row { display: flex; gap: 10px; align-items: flex-start; }
+  .row pre { flex: 1; }
+  button { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  button:hover, button:focus-visible { border-color: var(--accent); outline: none; }
+  a { color: var(--accent); }
+  .ok { color: var(--accent); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+  footer { color: var(--muted); font-size: 14px; margin-top: 22px; }
+  @media (max-width: 640px) { .wide { display: none; } .row { flex-direction: column; } }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title">Global Brainstem</h1>
+  <p class="lede" id="lede">Loading registry.json…</p>
+  <div class="chips" id="chips"></div>
+
+  <section>
+    <h2>Give this to any AI</h2>
+    <div class="row"><pre id="prompt">…</pre><button type="button" data-copy="prompt">Copy</button></div>
+  </section>
+
+  <section>
+    <h2>Agents</h2>
+    <table>
+      <thead><tr><th>Tool</th><th class="wide">Class</th><th>What it does</th><th>sha8</th><th>Checked here</th></tr></thead>
+      <tbody id="agents"><tr><td colspan="5">Loading…</td></tr></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Soul <span class="chip" id="soul-sha">…</span></h2>
+    <pre id="soul">Loading…</pre>
+  </section>
+
+  <footer>
+    A <a href="https://github.com/kody-w/rapp-static-apis/blob/main/SPEC.md">rapp-static-api/1.0</a> API, built with rapp-static-brainstem.
+    Every hash on this page is recomputed in your browser from the published files.
+    <span id="authority"></span>
+  </footer>
+</main>
+<script>
+(async () => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const hex = (buf) => Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
+  const lf = (bytes) => bytes.filter((b, i) => !(b === 13 && bytes[i + 1] === 10));
+
+  async function check(path, expected) {
+    try {
+      const response = await fetch(path, { cache: "no-store" });
+      if (!response.ok) return { ok: false, note: `HTTP ${response.status}` };
+      const bytes = lf(new Uint8Array(await response.arrayBuffer()));
+      if (!(window.crypto && crypto.subtle)) return { ok: null, note: "open over https to check", bytes };
+      const got = hex(await crypto.subtle.digest("SHA-256", bytes));
+      return { ok: got === expected, note: got === expected ? "SHA-256 matches" : "SHA-256 mismatch", bytes };
+    } catch (error) {
+      return { ok: false, note: "couldn't load" };
+    }
+  }
+  const mark = (v) => `<span class="${v.ok ? "ok" : v.ok === null ? "warn" : "bad"}">${v.ok ? "✓" : v.ok === null ? "–" : "✗"} ${esc(v.note)}</span>`;
+
+  let reg;
+  try {
+    reg = await (await fetch("registry.json", { cache: "no-store" })).json();
+  } catch (error) {
+    $("lede").textContent = "Couldn't load registry.json.";
+    return;
+  }
+  document.title = `${reg.title} · rapp-static-api/1.0`;
+  $("title").textContent = reg.title;
+  $("lede").textContent = reg.description;
+  $("authority").textContent = reg.authority || "";
+  const s = reg.summary || {};
+  const tone = s.status === "ok" ? "ok" : "warn";
+  $("chips").innerHTML = [
+    `<span class="chip">status <b class="${tone}">${esc(s.status)}</b></span>`,
+    `<span class="chip"><b>${esc(s.agents)}</b> agents</span>`,
+    `<span class="chip"><b>${esc(s.versions)}</b> stored versions</span>`,
+    `<span class="chip">built ${esc(reg.generated)}</span>`,
+    `<span class="chip"><a href="registry.json">registry.json</a></span>`,
+    `<span class="chip"><a href="SKILL.md">SKILL.md</a></span>`,
+  ].join("");
+  $("prompt").textContent = `Read ${reg.raw_base}SKILL.md and act as my brainstem.`;
+
+  const agents = (reg.entries || []).filter((e) => e.kind === "agent");
+  $("agents").innerHTML = agents.length
+    ? agents.map((a, i) => `<tr><td><code>${esc(a.tool)}</code></td><td class="wide">${esc(a.class)}</td>
+        <td>${esc(a.description)}</td><td><a href="${esc(a.path)}"><code>${esc(a.sha8)}</code></a></td>
+        <td id="check-${i}">checking…</td></tr>`).join("")
+    : `<tr><td colspan="5">No agents yet.</td></tr>`;
+  agents.forEach(async (a, i) => { $(`check-${i}`).innerHTML = mark(await check(a.path, a.sha256)); });
+
+  const soul = (reg.entries || []).find((e) => e.kind === "soul");
+  if (soul) {
+    const v = await check(soul.path, soul.sha256);
+    $("soul-sha").innerHTML = `${esc(soul.sha8)} ${mark(v)}`;
+    $("soul").textContent = v.bytes ? new TextDecoder().decode(v.bytes) : "Couldn't load the soul.";
+  }
+
+  document.querySelectorAll("[data-copy]").forEach((button) => button.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText($(button.dataset.copy).textContent);
+      button.textContent = "Copied";
+    } catch (error) {
+      button.textContent = "Select and copy";
+    }
+    setTimeout(() => (button.textContent = "Copy"), 1600);
+  }));
+})();
+</script>
+</body>
+</html>

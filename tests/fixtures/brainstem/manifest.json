@@ -1,0 +1,14 @@
+{
+  "name": "test-brainstem",
+  "title": "Test Brainstem",
+  "description": "The fixture brainstem the offline tests build. It's separate from src/, so your own content never breaks the tests.",
+  "owner": "Test",
+  "raw_base": "https://raw.githubusercontent.com/example/brainstem/main/",
+  "skill_name": "test-brainstem",
+  "version": "1.0.0",
+  "soul": "src/soul.md",
+  "agents": [
+    "src/agents/clock_agent.py",
+    "src/agents/hello_agent.py"
+  ]
+}

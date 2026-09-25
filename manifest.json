@@ -1,0 +1,17 @@
+{
+  "name": "global-brainstem",
+  "title": "Global Brainstem",
+  "description": "A RAPP brainstem as static files: soul, single-file agents, and tool schemas served from GitHub raw, so any AI can act as it without a server.",
+  "owner": "",
+  "raw_base": "auto",
+  "ref": "main",
+  "pages_base": null,
+  "skill_name": "global-brainstem",
+  "model": "gpt-4o",
+  "version": "1.0.0",
+  "soul": "src/soul.md",
+  "agents": [
+    "src/agents/clock_agent.py",
+    "src/agents/hello_agent.py"
+  ]
+}
