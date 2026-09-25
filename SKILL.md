@@ -52,6 +52,8 @@ If your Python can't reach the internet (many hosted coding sandboxes can't), us
 - `https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/api/v1/agents.json`
 - the agent's own file, listed as `File:` under Agents above (keep its `versions/...` path)
 
+Or, if you can attach a file but can't fetch these, attach the file from `https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/bundle/SKILL.md` instead: one file that carries all of them, with the command that unpacks it.
+
 That is all `call` needs, and `run.py` downloads nothing. `run.py` must have SHA-256 `99e7f6551408739d9792c94d93e27c3d1964aad68d3c7ce1706edda2606279e8`; the runner checks each agent against `api/v1/agents.json` itself. If it reports a SHA-256 mismatch, save that file again byte for byte; never edit a hash to make it match. `health` also needs `https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/api/v1/health.json`, and `--pin` needs `https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/registry.json` plus the pinned file. Use `python` if `python3` isn't there. For files that can't change, replace the branch in these URLs with a commit SHA.
 
 `run.py` checks the agent's SHA-256 against `api/v1/agents.json` before running it. To run an exact earlier version, add `--pin <sha8>`; versions are listed in `registry.json`. A skill copy holds only current versions, so add `--base https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/` for older ones.

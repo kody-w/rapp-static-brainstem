@@ -5,7 +5,7 @@
   "title": "RAPP Static Brainstem",
   "description": "A RAPP brainstem as static files: soul, single-file agents, and tool schemas served from GitHub raw, so any AI can act as it without a server.",
   "owner": "",
-  "generated": "2026-09-25T16:05:43Z",
+  "generated": "2026-09-25T18:37:53Z",
   "raw_base": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/",
   "pages_base": "https://kody-w.github.io/rapp-static-brainstem/",
   "entry": "SKILL.md",
@@ -28,7 +28,8 @@
     "agents": "api/v1/agents.json",
     "soul": "api/v1/soul.json",
     "runner": "run.py",
-    "dashboard": "index.html"
+    "dashboard": "index.html",
+    "bundle": "bundle/SKILL.md"
   },
   "chat": {
     "served": false,

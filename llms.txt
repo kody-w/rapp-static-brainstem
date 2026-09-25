@@ -13,4 +13,5 @@ A rapp-static-api/1.0 API: a RAPP brainstem as static files, with no server. POS
 - [api/v1/status.json](https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/api/v1/status.json): build status
 - [api/v1/badge.json](https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/api/v1/badge.json): shields.io badge
 - [run.py](https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/run.py): stdlib runner that verifies SHA-256 before it runs an agent
+- [bundle/SKILL.md](https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/bundle/SKILL.md): the whole brainstem in one file, for hosts that can attach a file but can't fetch
 - [Dashboard](https://kody-w.github.io/rapp-static-brainstem/index.html): the dashboard, which re-checks every hash in your browser
