@@ -20,6 +20,8 @@ The dashboard link assumes GitHub Pages is on: Settings → Pages → deploy fro
 
 ## Hosts that can't fetch links
 
+If the host takes attachments, download [`rapp-static-brainstem-skill.zip`](https://github.com/kody-w/rapp-static-brainstem/releases/latest/download/rapp-static-brainstem-skill.zip) from the latest release, attach it, and say: "Unzip this, follow SKILL.md, and run the Probe agent with nonce any-text-you-choose." The runner checks each agent's SHA-256 before it runs, and the Probe returns the SHA-256 of your nonce, so a matching hash shows it really ran. The zip is the skill copy from `--install-skill` below, without its `.mirror.json`.
+
 Install the same files as a skill:
 
 ```
