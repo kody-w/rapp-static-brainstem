@@ -469,6 +469,38 @@ class StaticBrainstemTests(unittest.TestCase):
         source = (self.root / "src/agents/probe_agent.py").read_text()
         self.assertNotIn("urllib", source, "the probe uses no network")
 
+    def test_compare_documents_finds_every_change_in_word_files(self):
+        self.manifest(agents=["src/agents/hello_agent.py", "src/agents/compare_documents_agent.py"])
+        self.built()
+
+        def docx(name, paragraphs):
+            body = "".join(f"<w:p><w:r><w:t>{text}</w:t></w:r></w:p>" for text in paragraphs)
+            path = self.tmp / name
+            with zipfile.ZipFile(path, "w") as archive:
+                archive.writestr("word/document.xml",
+                                 '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+                                 f"<w:body>{body}</w:body></w:document>")
+            return path
+
+        same = ["Terms", "Payment is due in 30 days.", "Notice is 90 days.", "Governed by local law."]
+        old = docx("old.docx", same + ["Planned work is agreed in advance."])
+        new = docx("new.docx", ["Terms", "Late fees apply after 15 days.", "Payment is due in 15 days.",
+                                "Notice is 90 days.", "Governed by local law."])
+        code, reply = self.call("CompareDocuments", json.dumps({"old_path": str(old), "new_path": str(new)}))
+        self.assertEqual(code, 0, reply)
+        self.assertTrue(reply["sha256_verified"])
+        result = json.loads(reply["result"])
+        self.assertEqual(result["counts"], {"added": 1, "removed": 1, "changed": 1, "unchanged": 3})
+        self.assertEqual([c["type"] for c in result["changes"]], ["added", "changed", "removed"])
+        self.assertEqual(result["changes"][1]["words"], [{"from": "30", "to": "15"}])
+
+        code, reply = self.call("CompareDocuments", json.dumps({"old_path": str(old), "new_path": str(old)}))
+        self.assertTrue(json.loads(reply["result"])["identical"])
+        code, reply = self.call("CompareDocuments", json.dumps({"old_path": str(old), "new_path": "missing.docx"}))
+        self.assertIn("no file at", reply["result"])
+        source = (self.root / "src/agents/compare_documents_agent.py").read_text()
+        self.assertNotIn("urllib", source, "it reads local files only")
+
     # -------------------------------------------------------------- skill install
 
     def test_skill_install_runs_and_keeps_foreign_files(self):

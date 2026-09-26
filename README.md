@@ -22,6 +22,8 @@ The dashboard link assumes GitHub Pages is on: Settings → Pages → deploy fro
 
 If the host takes attachments, attach one file: [`bundle/SKILL.md`](https://github.com/kody-w/rapp-static-brainstem/releases/latest/download/SKILL.md) (from the latest release, or `bundle/SKILL.md` in this repo). It carries the soul, agents and runner inside it, with one command that checks its SHA-256 and unpacks them. Then say: "Follow this SKILL.md and run the Probe agent with nonce any-text-you-choose." The Probe returns the SHA-256 of your nonce, so a matching hash shows it really ran. The release also has the same files as `rapp-static-brainstem-skill.zip`. If a brainstem grows past 512 KB the bundle is skipped and the zip is the way.
 
+If the host installs skills from an upload, upload [`rapp-static-brainstem.zip`](https://github.com/kody-w/rapp-static-brainstem/releases/latest/download/rapp-static-brainstem.zip) once instead. Keep that file name: it matches the skill's name, which some hosts require. Give the host a minute to finish installing, then ask: "Use my rapp-static-brainstem skill. What can you do for me?"
+
 Install the same files as a skill:
 
 ```

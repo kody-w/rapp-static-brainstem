@@ -12,6 +12,7 @@
   "agents": [
     "src/agents/clock_agent.py",
     "src/agents/hello_agent.py",
-    "src/agents/probe_agent.py"
+    "src/agents/probe_agent.py",
+    "src/agents/compare_documents_agent.py"
   ]
 }
