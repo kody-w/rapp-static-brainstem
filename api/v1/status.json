@@ -1,9 +1,9 @@
 {
   "schema": "rapp-static-brainstem-status/1.0",
-  "generated": "2026-09-25T16:05:43Z",
+  "generated": "2026-09-26T01:38:53Z",
   "status": "ok",
-  "agents": 3,
-  "versions": 4,
+  "agents": 4,
+  "versions": 5,
   "drift": [],
   "stale": [],
   "errors": [],

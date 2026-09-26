@@ -55,6 +55,34 @@
           ]
         }
       }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "CompareDocuments",
+        "description": "Compare two versions of a document (Word .docx, or .txt, .md, .csv) and list every difference: paragraphs added, removed and changed, with the exact words that changed. It reads both files in full, so small edits such as a changed number or date are not skipped. Pass the file paths of the older and newer versions.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "old_path": {
+              "type": "string",
+              "description": "Path of the older version."
+            },
+            "new_path": {
+              "type": "string",
+              "description": "Path of the newer version."
+            },
+            "max_changes": {
+              "type": "integer",
+              "description": "Most changes to list, 1 to 500. Defaults to 200."
+            }
+          },
+          "required": [
+            "old_path",
+            "new_path"
+          ]
+        }
+      }
     }
   ],
   "agents": [
@@ -87,6 +115,16 @@
       "bytes": 1860,
       "path": "versions/agents/probe_agent.py/3377b1eaf6f5.py",
       "raw": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/versions/agents/probe_agent.py/3377b1eaf6f5.py"
+    },
+    {
+      "class": "CompareDocumentsAgent",
+      "tool": "CompareDocuments",
+      "name": "agents/compare_documents_agent.py",
+      "sha8": "6a83d824ab61",
+      "sha256": "6a83d824ab61eeaf6c270a1c4b8a371ccd37af634499db89653fe433bc16e55c",
+      "bytes": 6826,
+      "path": "versions/agents/compare_documents_agent.py/6a83d824ab61.py",
+      "raw": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/versions/agents/compare_documents_agent.py/6a83d824ab61.py"
     }
   ]
 }

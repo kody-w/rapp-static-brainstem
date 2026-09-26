@@ -5,15 +5,15 @@
   "title": "RAPP Static Brainstem",
   "description": "A RAPP brainstem as static files: soul, single-file agents, and tool schemas served from GitHub raw, so any AI can act as it without a server.",
   "owner": "",
-  "generated": "2026-09-25T18:37:53Z",
+  "generated": "2026-09-26T01:38:53Z",
   "raw_base": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/",
   "pages_base": "https://kody-w.github.io/rapp-static-brainstem/",
   "entry": "SKILL.md",
   "summary": {
     "status": "ok",
-    "agents": 3,
+    "agents": 4,
     "soul": "d46536ffbd5e",
-    "versions": 4,
+    "versions": 5,
     "drift": 0,
     "stale": 0,
     "errors": 0
@@ -151,6 +151,36 @@
           "sha8": "3377b1eaf6f5",
           "sha256": "3377b1eaf6f5d97086575354239cb80f02f5c8ea15a4534488243c29ae4eb179",
           "bytes": 1860
+        }
+      ]
+    },
+    {
+      "name": "agents/compare_documents_agent.py",
+      "kind": "agent",
+      "class": "CompareDocumentsAgent",
+      "tool": "CompareDocuments",
+      "description": "Compare two versions of a document (Word .docx, or .txt, .md, .csv) and list every difference: paragraphs added, removed and changed, with the exact words that changed. It reads both files in full, so small edits such as a changed number or date are not skipped. Pass the file paths of the older and newer versions.",
+      "sha8": "6a83d824ab61",
+      "sha256": "6a83d824ab61eeaf6c270a1c4b8a371ccd37af634499db89653fe433bc16e55c",
+      "bytes": 6826,
+      "path": "versions/agents/compare_documents_agent.py/6a83d824ab61.py",
+      "raw": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/versions/agents/compare_documents_agent.py/6a83d824ab61.py",
+      "policy": "observe",
+      "fresh": true,
+      "drift": false,
+      "sources": [
+        {
+          "label": "repo",
+          "path": "src/agents/compare_documents_agent.py",
+          "url": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/src/agents/compare_documents_agent.py",
+          "sha8": "6a83d824ab61"
+        }
+      ],
+      "history": [
+        {
+          "sha8": "6a83d824ab61",
+          "sha256": "6a83d824ab61eeaf6c270a1c4b8a371ccd37af634499db89653fe433bc16e55c",
+          "bytes": 6826
         }
       ]
     }

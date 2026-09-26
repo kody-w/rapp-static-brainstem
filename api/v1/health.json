@@ -7,7 +7,8 @@
   "agents": [
     "ClockAgent",
     "HelloAgent",
-    "ProbeAgent"
+    "ProbeAgent",
+    "CompareDocumentsAgent"
   ],
   "copilot": "not used (static snapshot)",
   "endpoint": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/api/v1/"

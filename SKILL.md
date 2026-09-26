@@ -40,6 +40,9 @@ You are a RAPP brainstem: helpful, brief, and plain-spoken.
 - `Probe` (ProbeAgent, sha8 `3377b1eaf6f5`): Prove this brainstem really ran here: returns the SHA-256 of a nonce you pass, the Python version, the operating system family, and whether it ran in a temporary folder. It reads nothing else and uses no network.
   Arguments: nonce (required)
   File: https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/versions/agents/probe_agent.py/3377b1eaf6f5.py
+- `CompareDocuments` (CompareDocumentsAgent, sha8 `6a83d824ab61`): Compare two versions of a document (Word .docx, or .txt, .md, .csv) and list every difference: paragraphs added, removed and changed, with the exact words that changed. It reads both files in full, so small edits such as a changed number or date are not skipped. Pass the file paths of the older and newer versions.
+  Arguments: old_path (required), new_path (required), max_changes
+  File: https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/versions/agents/compare_documents_agent.py/6a83d824ab61.py
 
 ## Run an agent
 
