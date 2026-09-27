@@ -745,6 +745,19 @@ class StaticBrainstemTests(unittest.TestCase):
         self.assertIn(f"]({RAW}{rel})", (self.root / "llms.txt").read_text())
         self.assertIn("0 file(s) changed", self.build().stdout, "a rebuild leaves the zip alone")
 
+    def test_operator_contract_pins_the_zip_and_asks_first(self):
+        self.built()
+        contract = self.load("rapp-static-operator.json")
+        zip_rel = contract["artifacts"]["skill_zip"]["path"]
+        self.assertEqual(contract["artifacts"]["skill_zip"]["sha256"],
+                         hashlib.sha256((self.root / zip_rel).read_bytes()).hexdigest())
+        self.assertIs(contract["confirm_first"], True)
+        for host, folder in (("github-copilot", "~/.copilot/skills"), ("claude-code", "~/.claude/skills")):
+            self.assertEqual(contract["hosts"][host]["skills_dir"], folder)
+            self.assertIn("Wait for their yes", contract["hosts"][host]["steps"][0])
+        self.assertTrue(contract["hosts"]["copilot-cowork"]["by_person"])
+        self.assertIn("rapp-static-operator.json", self.load("registry.json")["endpoints"]["operator"])
+
     def test_bundle_is_byte_for_byte_reproducible(self):
         self.built()
         first = (self.root / "bundle/SKILL.md").read_bytes()

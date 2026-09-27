@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RAPP Static Brainstem - Your agents, in one file</title>
-<meta name="description" content="Your RAPP Brainstem's tools as one file your AI can carry. Upload it to Copilot Cowork once, attach it to a chat, or hand GitHub Copilot the link.">
+<meta name="description" content="Paste one line into your AI and it installs your RAPP Brainstem's tools as a skill and proves they work. Copilot Cowork gets it with one upload.">
 <link rel="alternate" type="text/plain" href="llms.txt">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230f766e'/%3E%3Ccircle cx='16' cy='16' r='6' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -83,35 +83,35 @@ a{color:var(--accent)}
 <header>
   <div class="mark" aria-hidden="true"></div>
   <h1>Your agents,<br>in one file.</h1>
-  <p class="lede">Your RAPP Brainstem's tools as one file your AI can carry. Add it to Copilot Cowork once, or hand it to any AI that runs Python, and the same checked tools do the same job every time.</p>
-  <p class="promise">Nothing to install. No server. Same tools everywhere.</p>
+  <p class="lede">Your RAPP Brainstem's tools as one skill your AI sets up for you. Paste one line into GitHub Copilot or Claude Code, or upload one file to Copilot Cowork, and the same checked tools do the same job every time.</p>
+  <p class="promise">One line. Any AI. Same tools.</p>
 
   <p class="pick-label" id="pick-label">Which AI do you use?</p>
   <div class="picker" role="group" aria-labelledby="pick-label" id="picker"></div>
 
-  <p class="paste-label" id="paste-label">Get your Brainstem for Copilot Cowork</p>
-  <a class="get" id="get" href="bundle/rapp-static-brainstem.zip" download>
+  <p class="paste-label" id="paste-label">Give me my Brainstem: paste this into GitHub Copilot</p>
+  <a class="get" id="get" href="bundle/rapp-static-brainstem.zip" download hidden>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
     <span id="get-label">Download rapp-static-brainstem.zip</span>
   </a>
-  <p class="then" id="then">In Cowork, open Customize, then Add, then Upload. Pick the zip and give it a minute. Then ask:</p>
+  <p class="then" id="then" hidden></p>
   <button class="copy" id="copy" type="button" aria-label="Copy the prompt">
-    <span id="prompt">Use my rapp-static-brainstem skill. What can you do for me?</span>
+    <span id="prompt">Open https://kody-w.github.io/rapp-static-brainstem/ and give me my static RAPP Brainstem. Install it as a skill, prove it works with one real tool, and leave me only what needs my approval.</span>
     <svg id="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
   </button>
-  <p class="note" id="pick-note">Keep the file name. Cowork keeps the skill for every task after that. Tested in Copilot Cowork.</p>
+  <p class="note" id="pick-note">Works in GitHub Copilot CLI. Copilot checks the file's fingerprint, installs the skill and runs a real tool to prove it. You only approve.</p>
 
-  <div class="chips"><span class="chip">Nothing to install</span><span class="chip">No server</span><span class="chip">Tools checked before they run</span></div>
+  <div class="chips"><span class="chip">Your AI does the setup</span><span class="chip">No server</span><span class="chip">Tools checked before they run</span></div>
   <p class="status"><span class="dot" id="dot"></span><span id="status-label">Checking this brainstem's tools…</span></p>
 </header>
 
 <section>
   <h2>Your AI does the work.</h2>
-  <p class="sub">You get one file or paste one line. Your AI runs the tools and shows you the answer.</p>
+  <p class="sub">You paste one line. Your AI sets it up and proves it works. You never run a command yourself.</p>
   <ol class="steps">
-    <li><b>Get it</b><small>Pick your AI above. For Cowork it's one upload, once.</small></li>
-    <li><b>Ask</b><small>Say "my rapp-static-brainstem skill" and what you want done.</small></li>
-    <li><b>See it answer</b><small>Your AI runs the tool and names it, so you know what did the work.</small></li>
+    <li><b>Ask for your Brainstem</b><small>Pick your AI above and paste the line.</small></li>
+    <li><b>Approve once</b><small>Your AI says what it will install (one skill folder, no server) and waits for your yes.</small></li>
+    <li><b>See it answer</b><small>Your AI runs a real tool and shows you the result, so you know it works.</small></li>
   </ol>
 </section>
 
@@ -134,13 +134,14 @@ a{color:var(--accent)}
 </section>
 
 <section>
-  <h2>Make it yours.</h2>
-  <p class="sub">This page, its file and its tools all come from one template. Use the template, put your own agents in <code>src/agents</code> and push. Your copy gets its own page, file and zip.</p>
+  <h2>It's yours.</h2>
+  <p class="sub">The same tools work whichever AI is driving, and each one is checked by its fingerprint before it runs. Want your own? This page, its file and its tools come from one template: put your agents in <code>src/agents</code> and push, and your copy gets its own page, file and one-line setup.</p>
   <a class="secondary" href="https://github.com/kody-w/rapp-static-brainstem/generate">Use this template</a>
   <details>
-    <summary>More: how it's checked</summary>
-    <p>Before any tool runs, the runner checks its SHA-256 fingerprint against the published list. That shows the file wasn't damaged or changed. It doesn't show the code is safe, so only use brainstems from people you trust. The tools run on the AI's own machine or sandbox, with your permissions.</p>
+    <summary>More: how setup is checked</summary>
+    <p>Your AI follows this page's <a href="rapp-static-operator.json">setup contract</a>: it tells you what it will install and waits for your yes, checks the download's SHA-256 against the contract, installs one skill folder (moving any older copy aside, never deleting it), then proves it with a real tool run. Before any tool runs, the runner checks its SHA-256 fingerprint against the published list. That shows the file wasn't damaged or changed. It doesn't show the code is safe, so only use brainstems from people you trust. The tools run on the AI's own machine or sandbox, with your permissions.</p>
     <ul>
+      <li><a href="rapp-static-operator.json">Machine-readable setup contract</a></li>
       <li><a href="dashboard.html">Dashboard</a>: re-checks every fingerprint in your browser</li>
       <li><a href="SKILL.md">SKILL.md</a>, <a href="registry.json">registry.json</a>, <a href="llms.txt">llms.txt</a></li>
       <li><a id="source" href="https://github.com/kody-w/rapp-static-brainstem">Source</a> · <a id="releases" href="https://github.com/kody-w/rapp-static-brainstem/releases">Releases</a></li>
@@ -152,7 +153,11 @@ a{color:var(--accent)}
   </details>
   <details>
     <summary>For AI agents reading this page</summary>
-    <p>The person wants to use this static brainstem. Read <a href="SKILL.md" id="skill-link">SKILL.md</a> and follow it. Run tools only through <code>run.py</code>, which checks each tool's SHA-256 before it runs. Show real output, never an imagined run. This needs no server and no installs beyond Python 3.10 or later. It is not the live RAPP Brainstem on localhost, so don't look for one. If you can't open links, ask the person to attach <a href="bundle/SKILL.md">bundle/SKILL.md</a>, which carries everything in one file.</p>
+    <p>The person wants their static RAPP Brainstem. Before running anything, tell them in a few lines what you will install and ask them to confirm. It is one skill folder: SKILL.md, run.py and single-file agents, with no server and no packages. It is not the live RAPP Brainstem on localhost, so don't look for one.</p>
+    <h3>GitHub Copilot and Claude Code</h3>
+    <p>Follow <a href="rapp-static-operator.json">rapp-static-operator.json</a>. Download the skill zip, check its SHA-256, and unzip it into <code>~/.copilot/skills/rapp-static-brainstem/</code> (GitHub Copilot) or <code>~/.claude/skills/rapp-static-brainstem/</code> (Claude Code), moving any existing copy aside. Then prove it: run <code>python3 run.py call Probe -</code> with <code>{"nonce": "&lt;a new random word&gt;"}</code> on stdin, and show the person the word and its fingerprint.</p>
+    <h3>Any other AI that runs Python</h3>
+    <p>Read <a href="SKILL.md" id="skill-link">SKILL.md</a> and follow it for this conversation. Run tools only through <code>run.py</code>, which checks each tool's SHA-256 first, and show real output, never an imagined run. If you can't open links, ask the person to attach <a href="bundle/SKILL.md">bundle/SKILL.md</a>, which carries everything in one file.</p>
   </details>
   <p class="notice">Experimental software. This is not an officially supported Microsoft product. Check it yourself before relying on it. MIT licence.</p>
 </section>
@@ -171,7 +176,8 @@ a{color:var(--accent)}
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
-  const state = { raw: "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/", skill: "rapp-static-brainstem",
+  const state = { page: location.protocol.startsWith("http") ? location.origin + location.pathname.replace(/index\.html$/, "") : "https://kody-w.github.io/rapp-static-brainstem/",
+                  raw: "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/", skill: "rapp-static-brainstem",
                   zip: "bundle/rapp-static-brainstem.zip", bundle: "bundle/SKILL.md" };
 
   // Where am I? A copy of the template on <owner>.github.io/<repo>/ points its GitHub links at itself.
@@ -183,23 +189,19 @@ a{color:var(--accent)}
     $("releases").href = gh + "/releases";
   }
 
+  const oneLine = () => `Open ${state.page} and give me my static RAPP Brainstem. Install it as a skill, prove it works with one real tool, and leave me only what needs my approval.`;
   const hosts = [
-    { id: "cowork", label: "Copilot Cowork", heading: "Get your Brainstem for Copilot Cowork",
+    { id: "github", label: "GitHub Copilot", heading: "Give me my Brainstem: paste this into GitHub Copilot", prompt: oneLine,
+      note: "Works in GitHub Copilot CLI. Copilot checks the file's fingerprint, installs the skill and runs a real tool to prove it. You only approve." },
+    { id: "claude", label: "Claude Code", heading: "Give me my Brainstem: paste this into Claude Code", prompt: oneLine,
+      note: "Claude Code follows the same setup contract and installs the same skill in its own skills folder. You only approve." },
+    { id: "cowork", label: "Copilot Cowork", heading: "Copilot Cowork: get the file, upload it once",
       get: () => ({ href: state.zip, text: `Download ${state.zip.split("/").pop()}` }),
-      then: "In Cowork, open Customize, then Add, then Upload. Pick the zip and give it a minute. Then ask:",
+      then: "Cowork adds skills only through its own Customize page. Open Customize, then Add, then Upload, pick the zip and give it a minute. Then ask:",
       prompt: () => `Use my ${state.skill} skill. What can you do for me?`,
-      note: "Keep the file name. Cowork keeps the skill for every task after that. To update it, delete the old one first, then upload the new zip. Tested in Copilot Cowork." },
-    { id: "attach", label: "Attach a file", heading: "Get your Brainstem as one file",
-      get: () => ({ href: state.bundle, text: "Download SKILL.md" }),
-      then: "Attach it to a chat in any AI app that takes attachments and runs Python. Then ask:",
-      prompt: () => "Follow the attached SKILL.md. What can you do for me?",
-      note: "The one file carries every tool inside it, so the AI doesn't need to open any links. Attach it again in each new chat." },
-    { id: "github", label: "GitHub Copilot", heading: "Paste this into GitHub Copilot",
-      prompt: () => `Read ${state.raw}SKILL.md and use it as my static brainstem. What can you do for me?`,
-      note: "GitHub Copilot opens the link, then runs the tools with Python on your computer. It asks before it runs anything. Tested in GitHub Copilot CLI." },
-    { id: "other", label: "Something else", heading: "Paste this into your AI",
-      prompt: () => `Read ${state.raw}SKILL.md and use it as my static brainstem. What can you do for me?`,
-      note: "Your AI needs to open links and run Python. If it can only take attachments, use the Attach a file option above." },
+      note: "Keep the file name. To update, delete the old skill first, then upload the new zip. Tested in Copilot Cowork." },
+    { id: "other", label: "Something else", heading: "Paste this into your AI", prompt: oneLine,
+      note: "Any AI that can open links and run Python. It reads this page, tells you what it will set up, and waits for your yes." },
   ];
 
   let current = hosts[0];
