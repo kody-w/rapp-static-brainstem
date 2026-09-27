@@ -1,0 +1,82 @@
+{
+  "schema": "rapp-static-operator/1",
+  "product": "RAPP Static Brainstem",
+  "skill": "rapp-static-brainstem",
+  "spec": "rapp-static-api/1.0",
+  "promise": "One line to the person's AI; the AI sets it up and proves it works. The person only approves.",
+  "confirm_first": true,
+  "artifacts": {
+    "skill": {
+      "url": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/SKILL.md"
+    },
+    "skill_zip": {
+      "path": "bundle/rapp-static-brainstem.zip",
+      "url": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/bundle/rapp-static-brainstem.zip",
+      "sha256": "18a8af79f5d659916b570ce5761231ea9485acde1e67293b9d48ae6c56b25965"
+    },
+    "bundle": {
+      "path": "bundle/SKILL.md",
+      "url": "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/bundle/SKILL.md",
+      "payload_sha256": "18a8af79f5d659916b570ce5761231ea9485acde1e67293b9d48ae6c56b25965"
+    }
+  },
+  "hosts": {
+    "github-copilot": {
+      "skills_dir": "~/.copilot/skills",
+      "steps": [
+        "Tell the person in a few lines what you will install: one skill folder with SKILL.md, run.py and the brainstem's single-file agents. No server, no packages, nothing else. Wait for their yes.",
+        "Download artifacts.skill_zip.url and check its SHA-256 equals artifacts.skill_zip.sha256. If it doesn't, stop and say so.",
+        "If <skills_dir>/rapp-static-brainstem already exists, move it aside to <skills_dir>/rapp-static-brainstem.previous-<date>. Never delete it.",
+        "Unzip into <skills_dir>/rapp-static-brainstem/ so SKILL.md sits directly inside that folder.",
+        "Prove it: run the proof below from that folder and show the person the word, its fingerprint, and the matching nonce_sha256.",
+        "Run 'python3 <skills_dir>/rapp-static-brainstem/run.py tools' and tell the person, in plain words, what they can ask for. They can say \"use my rapp-static-brainstem skill\" from now on."
+      ]
+    },
+    "claude-code": {
+      "skills_dir": "~/.claude/skills",
+      "steps": [
+        "Tell the person in a few lines what you will install: one skill folder with SKILL.md, run.py and the brainstem's single-file agents. No server, no packages, nothing else. Wait for their yes.",
+        "Download artifacts.skill_zip.url and check its SHA-256 equals artifacts.skill_zip.sha256. If it doesn't, stop and say so.",
+        "If <skills_dir>/rapp-static-brainstem already exists, move it aside to <skills_dir>/rapp-static-brainstem.previous-<date>. Never delete it.",
+        "Unzip into <skills_dir>/rapp-static-brainstem/ so SKILL.md sits directly inside that folder.",
+        "Prove it: run the proof below from that folder and show the person the word, its fingerprint, and the matching nonce_sha256.",
+        "Run 'python3 <skills_dir>/rapp-static-brainstem/run.py tools' and tell the person, in plain words, what they can ask for. They can say \"use my rapp-static-brainstem skill\" from now on."
+      ]
+    },
+    "copilot-cowork": {
+      "by_person": true,
+      "why": "Cowork adds skills only through its own Customize page.",
+      "steps": [
+        "Download bundle/rapp-static-brainstem.zip and keep the file name.",
+        "In Cowork open Customize, then Add, then Upload, and pick the zip.",
+        "Give it a minute, then ask: \"Use my rapp-static-brainstem skill. What can you do for me?\"",
+        "To update: delete the old skill first, then upload the new zip."
+      ]
+    },
+    "any-ai-that-runs-python": {
+      "steps": [
+        "Read https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/SKILL.md and follow it for this conversation.",
+        "Run tools only through run.py, which checks each tool's SHA-256."
+      ]
+    },
+    "attach-only": {
+      "steps": [
+        "Ask the person to attach bundle/SKILL.md (the whole brainstem in one file).",
+        "Follow the attached SKILL.md: its one command checks and unpacks it."
+      ]
+    }
+  },
+  "prove": {
+    "command": "python3 run.py call Probe -",
+    "stdin": "{\"nonce\": \"<a new random word>\"}",
+    "check": "result.nonce_sha256 equals the SHA-256 of the word, and sha256_verified is true."
+  },
+  "never": [
+    "Run an agent any way other than run.py.",
+    "Claim a run without showing its output.",
+    "Look for a brainstem server on localhost; this one has none.",
+    "Install anything beyond the skill folder.",
+    "Delete the person's files."
+  ],
+  "authority": "Non-authoritative discovery. Signed RAPP/1 frames and signed RAPP/1 registries remain the authority."
+}
