@@ -27,7 +27,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "brainstem"
-CODE = ["build.py", "run.py", "index.html", ".nojekyll"]
+CODE = ["build.py", "run.py", "index.html", "dashboard.html", ".nojekyll"]
 RAW = "https://raw.githubusercontent.com/example/brainstem/main/"
 ISO_Z = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 UNLINKED = ("GITHUB_REPOSITORY", "GITHUB_WORKSPACE")
@@ -205,10 +205,11 @@ class StaticBrainstemTests(unittest.TestCase):
         for phrase in ("use my static brainstem", "run an agent from my static brainstem",
                        "what agents are in my static brainstem"):
             self.assertIn(f"“{phrase}”", text)
-        page = (self.root / "index.html").read_text().lower()
+        pages = [(self.root / name).read_text().lower() for name in ("index.html", "dashboard.html")]
         for clash in ("global brainstem", "ask my brainstem"):  # other brainstem skills answer to these
             self.assertNotIn(clash, text.lower())
-            self.assertNotIn(clash, page)
+            for page in pages:
+                self.assertNotIn(clash, page)
 
     def test_llms_links_every_entry_point(self):
         for pages in (None, "https://example.github.io/brainstem/"):
@@ -220,9 +221,10 @@ class StaticBrainstemTests(unittest.TestCase):
                 for key, rel in reg["endpoints"].items():
                     if key == "llms":
                         continue
-                    if key == "dashboard":  # a dashboard link needs a Pages URL; raw would show its source
+                    if key in ("dashboard", "start"):  # pages need a Pages URL; raw would show their source
+                        link = f"]({pages})" if key == "start" else f"]({pages}{rel})"
                         if pages:
-                            self.assertIn(f"]({pages}{rel})", llms)
+                            self.assertIn(link, llms)
                         else:
                             self.assertNotIn(rel, llms)
                     else:
@@ -728,6 +730,20 @@ class StaticBrainstemTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("SHA-256 mismatch", result.stderr)
         self.assertFalse((host / "test-brainstem").exists(), "nothing is unpacked from a changed file")
+
+    def test_skill_zip_is_the_bundle_payload_for_upload_hosts(self):
+        self.built()
+        rel = self.load("registry.json")["endpoints"]["skill_zip"]
+        self.assertEqual(rel, "bundle/test-brainstem.zip", "named after the skill, as upload hosts require")
+        data = (self.root / rel).read_bytes()
+        payload = re.search(r"<!-- payload:start sha256=[0-9a-f]{64} -->(.*?)<!-- payload:end -->",
+                            (self.root / "bundle/SKILL.md").read_text(), re.S).group(1)
+        self.assertEqual(data, base64.b64decode(re.sub(r"\s+", "", payload)))
+        names = zipfile.ZipFile(io.BytesIO(data)).namelist()
+        self.assertIn("SKILL.md", names, "SKILL.md sits at the root")
+        self.assertFalse([n for n in names if any(part.startswith(".") for part in n.split("/"))], "no hidden files")
+        self.assertIn(f"]({RAW}{rel})", (self.root / "llms.txt").read_text())
+        self.assertIn("0 file(s) changed", self.build().stdout, "a rebuild leaves the zip alone")
 
     def test_bundle_is_byte_for_byte_reproducible(self):
         self.built()

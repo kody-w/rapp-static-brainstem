@@ -3,135 +3,298 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RAPP Static Brainstem · rapp-static-api/1.0</title>
-<meta name="description" content="A RAPP brainstem as static files: soul, single-file agents and tool schemas served from GitHub raw.">
+<title>RAPP Static Brainstem - Your agents, in one file</title>
+<meta name="description" content="Your RAPP Brainstem's tools as one file your AI can carry. Upload it to Copilot Cowork once, attach it to a chat, or hand GitHub Copilot the link.">
+<link rel="alternate" type="text/plain" href="llms.txt">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230f766e'/%3E%3Ccircle cx='16' cy='16' r='6' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-  :root { --ink:#16212a; --muted:#5d6c78; --line:#dde4ea; --bg:#f5f7f9; --card:#fff; --accent:#0e7a6b; --warn:#a86400; --bad:#b3261e; }
-  @media (prefers-color-scheme: dark) {
-    :root { --ink:#e6edf2; --muted:#9dafbc; --line:#263440; --bg:#0d151b; --card:#121d25; --accent:#3cc3ad; --warn:#f0b35a; --bad:#ff8a80; }
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: var(--bg); }
-  main { max-width: 960px; margin: 0 auto; padding: 36px 20px 64px; }
-  h1 { font-size: clamp(28px, 4.5vw, 42px); line-height: 1.1; margin: 0 0 8px; letter-spacing: -0.02em; }
-  .lede { color: var(--muted); margin: 0 0 18px; max-width: 62ch; }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; }
-  .chip { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 3px 12px; font-size: 14px; }
-  section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin: 0 0 16px; }
-  h2 { font-size: 17px; margin: 0 0 12px; display: flex; gap: 10px; align-items: center; }
-  table { width: 100%; border-collapse: collapse; font-size: 15px; }
-  th, td { text-align: left; padding: 10px 8px; border-top: 1px solid var(--line); vertical-align: top; }
-  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; border-top: 0; }
-  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13.5px; }
-  pre { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin: 0; overflow: auto; white-space: pre-wrap; max-height: 420px; }
-  .row { display: flex; gap: 10px; align-items: flex-start; }
-  .row pre { flex: 1; }
-  button { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
-  button:hover, button:focus-visible { border-color: var(--accent); outline: none; }
-  a { color: var(--accent); }
-  .ok { color: var(--accent); } .warn { color: var(--warn); } .bad { color: var(--bad); }
-  footer { color: var(--muted); font-size: 14px; margin-top: 22px; }
-  @media (max-width: 640px) { .wide { display: none; } .row { flex-direction: column; } }
+:root{--bg:#f7f5f0;--card:#fff;--ink:#1c1f23;--muted:#5b636b;--line:#e4e0d6;--accent:#0f766e;--accent-soft:#0f766e14;--code:#f1eee6;--ok:#15803d;--bad:#b91c1c;--wait:#a16207}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111416;--card:#1a1e21;--ink:#eceae4;--muted:#9aa3aa;--line:#2a2f33;--accent:#2dd4bf;--accent-soft:#2dd4bf1a;--code:#15191b;--ok:#4ade80;--bad:#f87171;--wait:#facc15}}
+:root[data-theme="dark"]{--bg:#111416;--card:#1a1e21;--ink:#eceae4;--muted:#9aa3aa;--line:#2a2f33;--accent:#2dd4bf;--accent-soft:#2dd4bf1a;--code:#15191b;--ok:#4ade80;--bad:#f87171;--wait:#facc15}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+header{padding:64px 0 48px;text-align:center}
+.mark{display:inline-grid;place-items:center;width:56px;height:56px;border-radius:30%;background:var(--accent);margin-bottom:18px}
+.mark::after{content:"";width:40%;height:40%;border:5px solid #fff;border-radius:50%}
+h1{font-size:clamp(2.1rem,6vw,3.2rem);line-height:1.1;letter-spacing:-.03em;margin:0;font-weight:700}
+.lede{max-width:35rem;margin:18px auto 0;color:var(--muted);font-size:1.08rem}
+.promise{margin:14px 0 0;color:var(--accent);font-weight:600}
+.pick-label{margin:36px 0 12px;color:var(--muted);font-size:.85rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.picker{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:40rem;margin:0 auto}
+.pick{padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);font:500 .92rem Inter,system-ui,sans-serif;cursor:pointer}
+.pick:hover{border-color:var(--accent)}
+.pick[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+:root[data-theme="dark"] .pick[aria-pressed="true"]{color:#0b1416}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pick[aria-pressed="true"]{color:#0b1416}}
+.paste-label{margin:26px 0 10px;color:var(--accent);font-weight:600}
+.get{display:inline-flex;align-items:center;gap:10px;margin:0 auto 12px;padding:12px 20px;border-radius:12px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600}
+:root[data-theme="dark"] .get{color:#0b1416}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .get{color:#0b1416}}
+.get svg{width:18px;height:18px}
+.get[hidden]{display:none}
+.then{color:var(--muted);font-size:.95rem;margin:4px auto 10px;max-width:36rem}
+.then[hidden]{display:none}
+.copy{display:flex;gap:12px;align-items:center;width:100%;max-width:38rem;margin:0 auto;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font:700 14px/1.45 "JetBrains Mono",ui-monospace,monospace;text-align:left;cursor:pointer;transition:border-color .15s}
+.copy:hover{border-color:var(--accent)}
+.copy span{flex:1;word-break:break-word}
+.copy svg{flex:none;width:18px;height:18px;color:var(--accent)}
+.note{color:var(--muted);font-size:.92rem;margin:12px auto 0;max-width:36rem}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:22px}
+.chip{padding:4px 12px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:.85rem;font-weight:600}
+.status{margin:22px auto 0;color:var(--muted);font-size:.92rem;max-width:36rem}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--wait);margin-right:7px;vertical-align:1px}
+.dot.online{background:var(--ok)}.dot.offline{background:var(--bad)}
+section{padding:40px 0;border-top:1px solid var(--line)}
+h2{font-size:1.5rem;letter-spacing:-.02em;margin:0 0 8px}
+p.sub{color:var(--muted);margin:0 0 24px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;padding:0;margin:0;list-style:none;counter-reset:s}
+.steps li{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;counter-increment:s}
+.steps li::before{content:counter(s);display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;margin-bottom:10px}
+.steps b{display:block;margin-bottom:4px}
+.steps small{color:var(--muted);font-size:.92rem}
+.when{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:600px){.when{grid-template-columns:1fr}}
+.when div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.when b{display:block;margin-bottom:6px}
+.when ul{margin:0;padding-left:18px;color:var(--ink)}
+.when li{margin:6px 0;font-size:.95rem}
+.tested{margin:18px 0 0;padding:14px 16px;border-radius:14px;background:var(--accent-soft);font-size:.95rem}
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px 20px;margin-top:12px}
+summary{cursor:pointer;font-weight:600;padding:14px 0}
+details h3{font-size:1rem;margin:20px 0 6px}
+details li{margin:4px 0}
+.check{display:flex;gap:8px;margin:10px 0}
+.check input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:500 14px "JetBrains Mono",ui-monospace,monospace}
+.hash{display:block;padding:10px 12px;border-radius:10px;background:var(--code);font:500 13px "JetBrains Mono",ui-monospace,monospace;word-break:break-all;min-height:40px;margin-bottom:14px}
+.secondary{display:inline-block;margin-top:4px;padding:9px 16px;border:1px solid var(--accent);border-radius:10px;color:var(--accent);text-decoration:none;font-weight:600}
+code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.88em}
+.notice{color:var(--muted);font-size:.85rem;border-left:3px solid var(--wait);padding:2px 0 2px 12px;margin:32px 0 0}
+footer{padding:28px 0 56px;color:var(--muted);font-size:.9rem;text-align:center}
+footer a{margin:0 8px}
+a{color:var(--accent)}
 </style>
 </head>
 <body>
 <main>
-  <h1 id="title">RAPP Static Brainstem</h1>
-  <p class="lede" id="lede">Loading registry.json…</p>
-  <div class="chips" id="chips"></div>
+<div class="wrap">
+<header>
+  <div class="mark" aria-hidden="true"></div>
+  <h1>Your agents,<br>in one file.</h1>
+  <p class="lede">Your RAPP Brainstem's tools as one file your AI can carry. Add it to Copilot Cowork once, or hand it to any AI that runs Python, and the same checked tools do the same job every time.</p>
+  <p class="promise">Nothing to install. No server. Same tools everywhere.</p>
 
-  <section>
-    <h2>Give this to any AI</h2>
-    <div class="row"><pre id="prompt">…</pre><button type="button" data-copy="prompt">Copy</button></div>
-  </section>
+  <p class="pick-label" id="pick-label">Which AI do you use?</p>
+  <div class="picker" role="group" aria-labelledby="pick-label" id="picker"></div>
 
-  <section>
-    <h2>Agents</h2>
-    <table>
-      <thead><tr><th>Tool</th><th class="wide">Class</th><th>What it does</th><th>sha8</th><th>Checked here</th></tr></thead>
-      <tbody id="agents"><tr><td colspan="5">Loading…</td></tr></tbody>
-    </table>
-  </section>
+  <p class="paste-label" id="paste-label">Get your Brainstem for Copilot Cowork</p>
+  <a class="get" id="get" href="bundle/rapp-static-brainstem.zip" download>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+    <span id="get-label">Download rapp-static-brainstem.zip</span>
+  </a>
+  <p class="then" id="then">In Cowork, open Customize, then Add, then Upload. Pick the zip and give it a minute. Then ask:</p>
+  <button class="copy" id="copy" type="button" aria-label="Copy the prompt">
+    <span id="prompt">Use my rapp-static-brainstem skill. What can you do for me?</span>
+    <svg id="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+  </button>
+  <p class="note" id="pick-note">Keep the file name. Cowork keeps the skill for every task after that. Tested in Copilot Cowork.</p>
 
-  <section>
-    <h2>Soul <span class="chip" id="soul-sha">…</span></h2>
-    <pre id="soul">Loading…</pre>
-  </section>
+  <div class="chips"><span class="chip">Nothing to install</span><span class="chip">No server</span><span class="chip">Tools checked before they run</span></div>
+  <p class="status"><span class="dot" id="dot"></span><span id="status-label">Checking this brainstem's tools…</span></p>
+</header>
 
-  <footer>
-    A <a href="https://github.com/kody-w/rapp-static-apis/blob/main/SPEC.md">rapp-static-api/1.0</a> API, built with rapp-static-brainstem.
-    Every hash on this page is recomputed in your browser from the published files.
-    <span id="authority"></span>
-  </footer>
+<section>
+  <h2>Your AI does the work.</h2>
+  <p class="sub">You get one file or paste one line. Your AI runs the tools and shows you the answer.</p>
+  <ol class="steps">
+    <li><b>Get it</b><small>Pick your AI above. For Cowork it's one upload, once.</small></li>
+    <li><b>Ask</b><small>Say "my rapp-static-brainstem skill" and what you want done.</small></li>
+    <li><b>See it answer</b><small>Your AI runs the tool and names it, so you know what did the work.</small></li>
+  </ol>
+</section>
+
+<section>
+  <h2>When to reach for it.</h2>
+  <p class="sub">Your AI does the thinking. The brainstem does the fixed steps, and names the version that did them.</p>
+  <div class="when">
+    <div><b>Use the brainstem when</b><ul>
+      <li>A job has to be done the same way every time, like a check your team repeats.</li>
+      <li>You need to show how you got the answer.</li>
+      <li>The same tool has to work in more than one AI.</li>
+    </ul></div>
+    <div><b>Just ask your AI when</b><ul>
+      <li>It's about your mail, meetings, calendar or files.</li>
+      <li>It's writing, research or a judgment call.</li>
+      <li>It needs the internet, or no tool here does the job.</li>
+    </ul></div>
+  </div>
+  <p class="tested"><b>Tested:</b> we gave Copilot Cowork two versions of a contract with seven small edits buried in them. Plain Cowork found all seven, and so did the brainstem's CompareDocuments tool. The difference is that the brainstem named the exact tool version that did the work, and it works the same way every time.</p>
+</section>
+
+<section>
+  <h2>Make it yours.</h2>
+  <p class="sub">This page, its file and its tools all come from one template. Use the template, put your own agents in <code>src/agents</code> and push. Your copy gets its own page, file and zip.</p>
+  <a class="secondary" href="https://github.com/kody-w/rapp-static-brainstem/generate">Use this template</a>
+  <details>
+    <summary>More: how it's checked</summary>
+    <p>Before any tool runs, the runner checks its SHA-256 fingerprint against the published list. That shows the file wasn't damaged or changed. It doesn't show the code is safe, so only use brainstems from people you trust. The tools run on the AI's own machine or sandbox, with your permissions.</p>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a>: re-checks every fingerprint in your browser</li>
+      <li><a href="SKILL.md">SKILL.md</a>, <a href="registry.json">registry.json</a>, <a href="llms.txt">llms.txt</a></li>
+      <li><a id="source" href="https://github.com/kody-w/rapp-static-brainstem">Source</a> · <a id="releases" href="https://github.com/kody-w/rapp-static-brainstem/releases">Releases</a></li>
+    </ul>
+    <h3>Check that it really ran</h3>
+    <p>Ask your AI: <code>Use my rapp-static-brainstem skill to run the Probe agent with the word pineapple-42.</code> It replies with a fingerprint of your word. Type the same word here. If the codes match, real code ran. The AI couldn't have guessed it.</p>
+    <div class="check"><input id="word" value="pineapple-42" aria-label="Your word" autocomplete="off"></div>
+    <span class="hash" id="hash" aria-live="polite"></span>
+  </details>
+  <details>
+    <summary>For AI agents reading this page</summary>
+    <p>The person wants to use this static brainstem. Read <a href="SKILL.md" id="skill-link">SKILL.md</a> and follow it. Run tools only through <code>run.py</code>, which checks each tool's SHA-256 before it runs. Show real output, never an imagined run. This needs no server and no installs beyond Python 3.10 or later. It is not the live RAPP Brainstem on localhost, so don't look for one. If you can't open links, ask the person to attach <a href="bundle/SKILL.md">bundle/SKILL.md</a>, which carries everything in one file.</p>
+  </details>
+  <p class="notice">Experimental software. This is not an officially supported Microsoft product. Check it yourself before relying on it. MIT licence.</p>
+</section>
+</div>
 </main>
+<footer class="wrap">
+  <a id="gh" href="https://github.com/kody-w/rapp-static-brainstem">GitHub</a>
+  <a href="dashboard.html">Dashboard</a>
+  <a href="llms.txt">llms.txt</a>
+  <a href="https://kody-w.github.io/rapp-brainstem/">The live RAPP Brainstem</a>
+</footer>
+
+<script type="application/json" id="rapp-static-brainstem-discovery">
+{"schema":"rapp-static-brainstem-discovery/1","skill":"SKILL.md","bundle":"bundle/SKILL.md","skill_zip":"bundle/rapp-static-brainstem.zip","registry":"registry.json","llms":"llms.txt","dashboard":"dashboard.html"}
+</script>
 <script>
-(async () => {
+(() => {
   const $ = (id) => document.getElementById(id);
-  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const hex = (buf) => Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
-  const lf = (bytes) => bytes.filter((b, i) => !(b === 13 && bytes[i + 1] === 10));
+  const state = { raw: "https://raw.githubusercontent.com/kody-w/rapp-static-brainstem/main/", skill: "rapp-static-brainstem",
+                  zip: "bundle/rapp-static-brainstem.zip", bundle: "bundle/SKILL.md" };
 
-  async function check(path, expected) {
-    try {
-      const response = await fetch(path, { cache: "no-store" });
-      if (!response.ok) return { ok: false, note: `HTTP ${response.status}` };
-      const bytes = lf(new Uint8Array(await response.arrayBuffer()));
-      if (!(window.crypto && crypto.subtle)) return { ok: null, note: "open over https to check", bytes };
-      const got = hex(await crypto.subtle.digest("SHA-256", bytes));
-      return { ok: got === expected, note: got === expected ? "SHA-256 matches" : "SHA-256 mismatch", bytes };
-    } catch (error) {
-      return { ok: false, note: "couldn't load" };
+  // Where am I? A copy of the template on <owner>.github.io/<repo>/ points its GitHub links at itself.
+  const m = location.hostname.match(/^([^.]+)\.github\.io$/);
+  const repo = m && location.pathname.split("/").filter(Boolean)[0];
+  if (m && repo) {
+    const gh = `https://github.com/${m[1]}/${repo}`;
+    $("gh").href = $("source").href = gh;
+    $("releases").href = gh + "/releases";
+  }
+
+  const hosts = [
+    { id: "cowork", label: "Copilot Cowork", heading: "Get your Brainstem for Copilot Cowork",
+      get: () => ({ href: state.zip, text: `Download ${state.zip.split("/").pop()}` }),
+      then: "In Cowork, open Customize, then Add, then Upload. Pick the zip and give it a minute. Then ask:",
+      prompt: () => `Use my ${state.skill} skill. What can you do for me?`,
+      note: "Keep the file name. Cowork keeps the skill for every task after that. To update it, delete the old one first, then upload the new zip. Tested in Copilot Cowork." },
+    { id: "attach", label: "Attach a file", heading: "Get your Brainstem as one file",
+      get: () => ({ href: state.bundle, text: "Download SKILL.md" }),
+      then: "Attach it to a chat in any AI app that takes attachments and runs Python. Then ask:",
+      prompt: () => "Follow the attached SKILL.md. What can you do for me?",
+      note: "The one file carries every tool inside it, so the AI doesn't need to open any links. Attach it again in each new chat." },
+    { id: "github", label: "GitHub Copilot", heading: "Paste this into GitHub Copilot",
+      prompt: () => `Read ${state.raw}SKILL.md and use it as my static brainstem. What can you do for me?`,
+      note: "GitHub Copilot opens the link, then runs the tools with Python on your computer. It asks before it runs anything. Tested in GitHub Copilot CLI." },
+    { id: "other", label: "Something else", heading: "Paste this into your AI",
+      prompt: () => `Read ${state.raw}SKILL.md and use it as my static brainstem. What can you do for me?`,
+      note: "Your AI needs to open links and run Python. If it can only take attachments, use the Attach a file option above." },
+  ];
+
+  let current = hosts[0];
+  function select(h) {
+    current = h;
+    document.querySelectorAll(".pick").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.id === h.id)));
+    $("paste-label").textContent = h.heading;
+    const get = h.get && h.get();
+    $("get").hidden = !get;
+    $("then").hidden = !h.then;
+    if (get) { $("get").href = get.href; $("get-label").textContent = get.text; }
+    if (h.then) $("then").textContent = h.then;
+    $("prompt").textContent = h.prompt();
+    $("pick-note").textContent = h.note;
+    try { localStorage.setItem("rapp-static-ai", h.id); } catch (e) {}
+  }
+  hosts.forEach((h) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "pick"; b.dataset.id = h.id; b.textContent = h.label;
+    b.addEventListener("click", () => select(h));
+    $("picker").appendChild(b);
+  });
+  let saved = null;
+  try { saved = localStorage.getItem("rapp-static-ai"); } catch (e) {}
+  select(hosts.find((h) => h.id === saved) || hosts[0]);
+
+  $("copy").addEventListener("click", async () => {
+    const text = $("prompt").textContent.trim();
+    try { await navigator.clipboard.writeText(text); }
+    catch (e) {
+      const a = document.createElement("textarea"); a.value = text; a.style.position = "fixed"; a.style.opacity = "0";
+      document.body.appendChild(a); a.select(); try { document.execCommand("copy"); } catch (e2) {} a.remove();
     }
-  }
-  const mark = (v) => `<span class="${v.ok ? "ok" : v.ok === null ? "warn" : "bad"}">${v.ok ? "✓" : v.ok === null ? "–" : "✗"} ${esc(v.note)}</span>`;
+    const icon = $("icon"); icon.innerHTML = '<path d="M20 6 9 17l-5-5"/>';
+    setTimeout(() => { icon.innerHTML = '<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>'; }, 1400);
+  });
 
-  let reg;
-  try {
-    reg = await (await fetch("registry.json", { cache: "no-store" })).json();
-  } catch (error) {
-    $("lede").textContent = "Couldn't load registry.json.";
-    return;
-  }
-  document.title = `${reg.title} · rapp-static-api/1.0`;
-  $("title").textContent = reg.title;
-  $("lede").textContent = reg.description;
-  $("authority").textContent = reg.authority || "";
-  const s = reg.summary || {};
-  const tone = s.status === "ok" ? "ok" : "warn";
-  $("chips").innerHTML = [
-    `<span class="chip">status <b class="${tone}">${esc(s.status)}</b></span>`,
-    `<span class="chip"><b>${esc(s.agents)}</b> agents</span>`,
-    `<span class="chip"><b>${esc(s.versions)}</b> stored versions</span>`,
-    `<span class="chip">built ${esc(reg.generated)}</span>`,
-    `<span class="chip"><a href="registry.json">registry.json</a></span>`,
-    `<span class="chip"><a href="SKILL.md">SKILL.md</a></span>`,
-  ].join("");
-  $("prompt").textContent = `Read ${reg.raw_base}SKILL.md and act as my brainstem.`;
-
-  const agents = (reg.entries || []).filter((e) => e.kind === "agent");
-  $("agents").innerHTML = agents.length
-    ? agents.map((a, i) => `<tr><td><code>${esc(a.tool)}</code></td><td class="wide">${esc(a.class)}</td>
-        <td>${esc(a.description)}</td><td><a href="${esc(a.path)}"><code>${esc(a.sha8)}</code></a></td>
-        <td id="check-${i}">checking…</td></tr>`).join("")
-    : `<tr><td colspan="5">No agents yet.</td></tr>`;
-  agents.forEach(async (a, i) => { $(`check-${i}`).innerHTML = mark(await check(a.path, a.sha256)); });
-
-  const soul = (reg.entries || []).find((e) => e.kind === "soul");
-  if (soul) {
-    const v = await check(soul.path, soul.sha256);
-    $("soul-sha").innerHTML = `${esc(soul.sha8)} ${mark(v)}`;
-    $("soul").textContent = v.bytes ? new TextDecoder().decode(v.bytes) : "Couldn't load the soul.";
-  }
-
-  document.querySelectorAll("[data-copy]").forEach((button) => button.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText($(button.dataset.copy).textContent);
-      button.textContent = "Copied";
-    } catch (error) {
-      button.textContent = "Select and copy";
+  // SHA-256 in plain JavaScript, so the check also works where crypto.subtle is missing.
+  function sha256(bytes) {
+    const K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+    const H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+    const l = bytes.length, n = ((l + 9 + 63) >> 6) << 6, msg = new Uint8Array(n);
+    msg.set(bytes); msg[l] = 0x80;
+    for (let i = 0; i < 8; i++) msg[n - 1 - i] = Math.floor((l * 8) / Math.pow(2, 8 * i)) & 0xff;
+    const w = new Array(64), r = (x, k) => (x >>> k) | (x << (32 - k));
+    for (let o = 0; o < n; o += 64) {
+      for (let i = 0; i < 16; i++) w[i] = (msg[o+4*i] << 24) | (msg[o+4*i+1] << 16) | (msg[o+4*i+2] << 8) | msg[o+4*i+3];
+      for (let i = 16; i < 64; i++) { const s0 = r(w[i-15],7) ^ r(w[i-15],18) ^ (w[i-15] >>> 3), s1 = r(w[i-2],17) ^ r(w[i-2],19) ^ (w[i-2] >>> 10); w[i] = (w[i-16] + s0 + w[i-7] + s1) | 0; }
+      let [a, b, c, d, e, f, g, h] = H;
+      for (let i = 0; i < 64; i++) {
+        const t1 = (h + (r(e,6) ^ r(e,11) ^ r(e,25)) + ((e & f) ^ (~e & g)) + K[i] + w[i]) | 0;
+        const t2 = ((r(a,2) ^ r(a,13) ^ r(a,22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      H[0]=(H[0]+a)|0; H[1]=(H[1]+b)|0; H[2]=(H[2]+c)|0; H[3]=(H[3]+d)|0; H[4]=(H[4]+e)|0; H[5]=(H[5]+f)|0; H[6]=(H[6]+g)|0; H[7]=(H[7]+h)|0;
     }
-    setTimeout(() => (button.textContent = "Copy"), 1600);
-  }));
+    return H.map((x) => ("00000000" + (x >>> 0).toString(16)).slice(-8)).join("");
+  }
+  const text = (s) => new TextEncoder().encode(s);
+  const lf = (bytes) => { const out = []; for (let i = 0; i < bytes.length; i++) { if (bytes[i] === 13 && bytes[i+1] === 10) continue; out.push(bytes[i]); } return new Uint8Array(out); };
+
+  const word = $("word");
+  const showHash = () => { $("hash").textContent = word.value ? sha256(text(word.value)) : ""; };
+  word.addEventListener("input", showHash); showHash();
+
+  // Live check: every published tool's fingerprint, recomputed here from the published files.
+  (async () => {
+    const dot = $("dot"), label = $("status-label");
+    try {
+      const reg = await (await fetch("registry.json", { cache: "no-store" })).json();
+      state.raw = reg.raw_base || state.raw;
+      state.skill = ((reg.endpoints && reg.endpoints.skill_zip) || state.zip).split("/").pop().replace(/\.zip$/, "");
+      state.zip = (reg.endpoints && reg.endpoints.skill_zip) || state.zip;
+      state.bundle = (reg.endpoints && reg.endpoints.bundle) || state.bundle;
+      $("skill-link").href = state.raw + "SKILL.md";
+      select(current);
+      const tools = await (await fetch("api/v1/agents.json", { cache: "no-store" })).json();
+      let good = 0;
+      for (const a of tools.agents) {
+        const bytes = new Uint8Array(await (await fetch(a.path, { cache: "no-store" })).arrayBuffer());
+        if (sha256(lf(bytes)) === a.sha256) good++;
+      }
+      const names = tools.agents.map((a) => a.tool).join(", ");
+      if (good === tools.agents.length) {
+        dot.className = "dot online";
+        label.textContent = `Published and checked: ${good} tools (${names}). Every fingerprint matches.`;
+      } else {
+        dot.className = "dot offline";
+        label.textContent = `${tools.agents.length - good} of ${tools.agents.length} tools don't match their fingerprints. Don't use this copy.`;
+      }
+    } catch (e) {
+      dot.className = "dot offline";
+      label.textContent = "Couldn't load this brainstem's list of tools. The page may still be publishing.";
+    }
+  })();
 })();
 </script>
 </body>

@@ -654,9 +654,11 @@ A rapp-static-api/1.0 API: a RAPP brainstem as static files, with no server. POS
 - [api/v1/status.json]({raw_base}api/v1/status.json): build status
 - [api/v1/badge.json]({raw_base}api/v1/badge.json): shields.io badge
 - [run.py]({raw_base}run.py): stdlib runner that verifies SHA-256 before it runs an agent
-{bundle}{dashboard}"""
+{bundle}{zip}{dashboard}"""
 LLMS_BUNDLE = "- [{path}]({raw_base}{path}): the whole brainstem in one file, for hosts that can attach a file but can't fetch\n"
-LLMS_DASHBOARD = "- [Dashboard]({pages_base}index.html): the dashboard, which re-checks every hash in your browser\n"
+LLMS_ZIP = "- [{path}]({raw_base}{path}): the same skill as a zip, for hosts that install a skill from an upload (keep the file name)\n"
+LLMS_DASHBOARD = ("- [Start here]({pages_base}): how to use this brainstem with your AI\n"
+                  "- [Dashboard]({pages_base}dashboard.html): the dashboard, which re-checks every hash in your browser\n")
 
 
 def render_skill(manifest: dict, soul: dict, soul_text: str, agents: list, run_sha256: str = "",
@@ -745,7 +747,8 @@ def build(root: Path, repo_flag: str | None = None) -> dict:
         "endpoints": {"skill": "SKILL.md", "llms": "llms.txt", "status": "api/v1/status.json",
                       "badge": "api/v1/badge.json", "health": "api/v1/health.json",
                       "version": "api/v1/version.json", "agents": "api/v1/agents.json",
-                      "soul": "api/v1/soul.json", "runner": "run.py", "dashboard": "index.html"},  # + bundle, below
+                      "soul": "api/v1/soul.json", "runner": "run.py", "start": "index.html",
+                      "dashboard": "dashboard.html"},  # + bundle and skill_zip, below
         "chat": {"served": False, "reason": NO_CHAT},
         "authority": AUTHORITY,
         "entries": public,
@@ -769,11 +772,14 @@ def build(root: Path, repo_flag: str | None = None) -> dict:
     soul_doc = {"schema": "rapp-static-brainstem-soul/1.0", "sha8": soul["sha8"], "sha256": soul["sha256"],
                 "path": soul["path"], "raw": soul["raw"], "text": soul_text}
 
-    def render_outputs(with_bundle: bool) -> dict:
-        if with_bundle:
-            registry["endpoints"]["bundle"] = BUNDLE_PATH
-        else:
-            registry["endpoints"].pop("bundle", None)
+    zip_path = SKILL_ZIP_PATH.format(skill_name=manifest["skill_name"])
+
+    def render_outputs(with_bundle: bool, with_zip: bool = True) -> dict:
+        for key, path, on in (("bundle", BUNDLE_PATH, with_bundle), ("skill_zip", zip_path, with_zip)):
+            if on:
+                registry["endpoints"][key] = path
+            else:
+                registry["endpoints"].pop(key, None)
         return {
             "registry.json": stable(root / "registry.json", registry),
             "api/v1/status.json": stable(api / "status.json", status_doc),
@@ -792,6 +798,7 @@ def build(root: Path, repo_flag: str | None = None) -> dict:
                 description=manifest["description"] or "A RAPP brainstem as static files.",
                 dashboard=LLMS_DASHBOARD.format(pages_base=manifest["pages_base"]) if manifest["pages_base"] else "",
                 bundle=LLMS_BUNDLE.format(raw_base=raw_base, path=BUNDLE_PATH) if with_bundle else "",
+                zip=LLMS_ZIP.format(raw_base=raw_base, path=zip_path) if with_zip else "",
             ).encode("utf-8"),
         }
 
@@ -813,9 +820,21 @@ def build(root: Path, repo_flag: str | None = None) -> dict:
             dropped.append(BUNDLE_PATH)
     else:
         outputs[BUNDLE_PATH] = bundle
+    # The same skill as a zip, for hosts that install a skill from an upload: exactly the bundle's payload.
+    final_view = {rel: outputs[rel] if rel in outputs else view[rel] for rel in skill_files}
+    skill_zip = pack(final_view)
+    if len(skill_zip) > MAX_ZIP_BYTES:
+        notes.append(f"{zip_path} skipped: it would be {len(skill_zip):,} bytes, over the 10 MB limit.")
+        outputs = render_outputs(BUNDLE_PATH in outputs, with_zip=False) | (
+            {BUNDLE_PATH: outputs[BUNDLE_PATH]} if BUNDLE_PATH in outputs else {})
+        if (root / zip_path).is_file():
+            (root / zip_path).unlink()
+            dropped.append(zip_path)
     for rel, data in outputs.items():  # last line of defence, before anything is written
         # the bundle's payload is the view above, scanned file by file; base64 can look like anything
         refuse_secrets(rel, PAYLOAD_RE.sub("", data.decode("utf-8")).encode("utf-8") if rel == BUNDLE_PATH else data)
+    if len(skill_zip) <= MAX_ZIP_BYTES:
+        outputs[zip_path] = skill_zip  # binary; its files were scanned one by one above
     changed = new_blobs + dropped + [rel for rel, data in outputs.items() if write_if_changed(root / rel, data)]
     return {"manifest": manifest, "status": status, "agents": agents, "changed": changed, "notes": notes,
             "stored": stored, "skill_files": skill_files}
@@ -825,6 +844,8 @@ def build(root: Path, repo_flag: str | None = None) -> dict:
 
 BUNDLE_SCHEMA = "rapp-static-brainstem-bundle/1.0"
 BUNDLE_PATH = "bundle/SKILL.md"
+SKILL_ZIP_PATH = "bundle/{skill_name}.zip"
+MAX_ZIP_BYTES = 10 * 1024 * 1024  # the most a host's skill upload takes
 PAYLOAD_RE = re.compile(r"<!-- payload:start sha256=([0-9a-f]{64}) -->(.*?)<!-- payload:end -->", re.S)
 UNPACK = """python3 - SKILL.md <<'PY'
 import base64, hashlib, io, pathlib, re, sys, zipfile

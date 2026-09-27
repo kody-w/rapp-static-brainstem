@@ -2,6 +2,8 @@
 
 Your RAPP brainstem as a static API. The soul, single-file agents, and tool schemas are served from GitHub raw, so any AI that can read one link can act as your brainstem. There's no server and no API key.
 
+**Start here:** [kody-w.github.io/rapp-static-brainstem](https://kody-w.github.io/rapp-static-brainstem/) picks the right setup for your AI.
+
 [Requirements (PRD)](PRD.md) · [rapp-static-api/1.0 spec](https://github.com/kody-w/rapp-static-apis/blob/main/SPEC.md) · [MIT license](LICENSE)
 
 ## Quick start
@@ -16,13 +18,13 @@ Your RAPP brainstem as a static API. The soul, single-file agents, and tool sche
 
 To start with an empty history instead of the template's demo versions, delete `registry.json`, `api/`, and `versions/` before your first push.
 
-The dashboard link assumes GitHub Pages is on: Settings → Pages → deploy from the `main` branch, root folder. If you don't want the dashboard, set `"pages_base": null` in `manifest.json`.
+The start page (`index.html`) and the dashboard (`dashboard.html`) assume GitHub Pages is on: Settings → Pages → deploy from the `main` branch, root folder. Each copy of the template gets its own start page, with download buttons for its own `bundle/SKILL.md` and `bundle/<skill>.zip`. If you don't want Pages, set `"pages_base": null` in `manifest.json`.
 
 ## Hosts that can't fetch links
 
 If the host takes attachments, attach one file: [`bundle/SKILL.md`](https://github.com/kody-w/rapp-static-brainstem/releases/latest/download/SKILL.md) (from the latest release, or `bundle/SKILL.md` in this repo). It carries the soul, agents and runner inside it, with one command that checks its SHA-256 and unpacks them. Then say: "Follow this SKILL.md and run the Probe agent with nonce any-text-you-choose." The Probe returns the SHA-256 of your nonce, so a matching hash shows it really ran. The release also has the same files as `rapp-static-brainstem-skill.zip`. If a brainstem grows past 512 KB the bundle is skipped and the zip is the way.
 
-If the host installs skills from an upload, upload [`rapp-static-brainstem.zip`](https://github.com/kody-w/rapp-static-brainstem/releases/latest/download/rapp-static-brainstem.zip) once instead. Keep that file name: it matches the skill's name, which some hosts require. Give the host a minute to finish installing, then ask: "Use my rapp-static-brainstem skill. What can you do for me?"
+If the host installs skills from an upload, upload `bundle/rapp-static-brainstem.zip` once instead (the build writes it next to `bundle/SKILL.md`; it's also on the [latest release](https://github.com/kody-w/rapp-static-brainstem/releases/latest/download/rapp-static-brainstem.zip)). Keep that file name: it matches the skill's name, which some hosts require. Give the host a minute to finish installing, then ask: "Use my rapp-static-brainstem skill. What can you do for me?"
 
 Install the same files as a skill:
 
