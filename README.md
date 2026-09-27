@@ -1,5 +1,9 @@
 # rapp-static-brainstem
 
+<!-- rapp1:network-header:start -->
+[![RAPP/1](https://kody-w.github.io/rapp-hive-public/portfolio/badges/rapp-static-brainstem.svg)](https://github.com/kody-w/rapp-hive-public/blob/main/portfolio/repos/rapp-static-brainstem.md) · **New to RAPP?** [Start here: get your Brainstem →](https://github.com/kody-w/rapp-installer#start-here)
+<!-- rapp1:network-header:end -->
+
 Your RAPP brainstem as a static API. The soul, single-file agents, and tool schemas are served from GitHub raw, so any AI that can read one link can act as your brainstem. There's no server and no API key.
 
 **Start here:** [kody-w.github.io/rapp-static-brainstem](https://kody-w.github.io/rapp-static-brainstem/) picks the right setup for your AI.
